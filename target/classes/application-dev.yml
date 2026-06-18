@@ -8,10 +8,24 @@ spring:
     host: localhost
     port: 6379
     password: 
+  # Redis 本地开发模板，按需取消注释
+  # redis:
+  #   host: 127.0.0.1
+  #   port: 6379
+  #   password:
+  #   database: 0
+  #   timeout: 3000ms
   elasticsearch:
     uris: http://localhost:9200
     username:
     password:
+  # Elasticsearch 本地开发模板，按需取消注释
+  # elasticsearch:
+  #   uris: http://127.0.0.1:9200
+  #   username: elastic
+  #   password: your-es-password
+  #   connection-timeout: 3s
+  #   socket-timeout: 10s
   mail:
     host: localhost
     port: 1025
