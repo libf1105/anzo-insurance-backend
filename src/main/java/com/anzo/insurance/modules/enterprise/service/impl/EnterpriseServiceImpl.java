@@ -13,9 +13,11 @@ import com.anzo.insurance.modules.enterprise.dto.EnterpriseUpdateDTO;
 import com.anzo.insurance.modules.enterprise.service.EnterpriseService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,9 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 /**
  * 企业服务实现类
  */
@@ -64,6 +63,8 @@ public class EnterpriseServiceImpl implements EnterpriseService {
         enterprise.setContactName(updateDTO.getContactName());
         enterprise.setContactPhone(updateDTO.getContactPhone());
         enterprise.setContactEmail(updateDTO.getContactEmail());
+        enterprise.setAddress(updateDTO.getAddress());
+        enterprise.setDescription(updateDTO.getDescription());
         enterprise.setUpdatedAt(LocalDateTime.now());
 
         enterpriseRepository.updateById(enterprise);
@@ -81,7 +82,7 @@ public class EnterpriseServiceImpl implements EnterpriseService {
     }
 
     @Override
-    public Page<Enterprise> queryEnterprises(EnterpriseQueryDTO queryDTO, org.springframework.data.domain.Pageable pageable) {
+    public Page<Enterprise> queryEnterprises(EnterpriseQueryDTO queryDTO, Pageable pageable) {
         LambdaQueryWrapper<Enterprise> queryWrapper = Wrappers.lambdaQuery(Enterprise.class)
                 .eq(StrUtil.isNotBlank(queryDTO.getStatus()), Enterprise::getStatus, queryDTO.getStatus())
                 .like(StrUtil.isNotBlank(queryDTO.getName()), Enterprise::getName, queryDTO.getName())
@@ -100,10 +101,10 @@ public class EnterpriseServiceImpl implements EnterpriseService {
             new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(
                 pageable.getPageNumber() + 1, pageable.getPageSize());
 
-        com.baomidou.mybatisplus.extension.plugins.pagination.Page<Enterprise> result = 
+        com.baomidou.mybatisplus.extension.plugins.pagination.Page<Enterprise> result =
             enterpriseRepository.selectPage(page, queryWrapper);
 
-        return new org.springframework.data.domain.PageImpl<>(
+        return new PageImpl<>(
             result.getRecords(),
             pageable,
             result.getTotal()
@@ -269,7 +270,7 @@ public class EnterpriseServiceImpl implements EnterpriseService {
         LambdaQueryWrapper<User> userQuery = Wrappers.lambdaQuery(User.class)
                 .eq(User::getEnterpriseId, enterpriseId)
                 .eq(User::getDeleted, false);
-        int totalUsers = userRepository.selectCount(userQuery);
+        int totalUsers = userRepository.selectCount(userQuery).intValue();
 
         // 这里可以添加获取保单数量、保费总额等统计逻辑
         // 目前先返回基本的企业信息

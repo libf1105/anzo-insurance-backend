@@ -80,7 +80,12 @@ public class FileManagementServiceImpl implements FileManagementService {
         }
         
         // 检查文件是否已存在（通过MD5）
-        String md5 = DigestUtil.md5Hex(uploadDTO.getFile().getBytes());
+        String md5;
+        try {
+            md5 = DigestUtil.md5Hex(uploadDTO.getFile().getBytes());
+        } catch (IOException e) {
+            throw new BusinessException(ErrorCode.FILE_OPERATION_ERROR.getCode(), "文件读取失败", e);
+        }
         EnterpriseFile existingFile = fileRepository.findByMd5(md5, enterprise.getId());
         if (existingFile != null && existingFile.isActive()) {
             throw new BusinessException(ErrorCode.FILE_EXISTS.getCode(), "文件已存在");
@@ -354,7 +359,7 @@ public class FileManagementServiceImpl implements FileManagementService {
                         .eq(EnterpriseFile::getEnterpriseId, enterpriseId)
                         .eq(EnterpriseFile::getReviewStatus, EnterpriseFile.ReviewStatus.REJECTED.name())
                         .eq(EnterpriseFile::getDeleted, false);
-                return fileRepository.selectCount(queryWrapper);
+                return fileRepository.selectCount(queryWrapper).intValue();
             }
         };
     }

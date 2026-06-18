@@ -2,6 +2,7 @@ package com.anzo.insurance.modules.policy.service.impl;
 
 import com.anzo.insurance.common.exception.BusinessException;
 import com.anzo.insurance.common.security.SecurityUtil;
+import com.anzo.insurance.modules.message.service.NotificationService;
 import com.anzo.insurance.modules.policy.dto.*;
 import com.anzo.insurance.modules.policy.entity.Policy;
 import com.anzo.insurance.modules.policy.repository.PolicyMapper;
@@ -16,9 +17,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.annotation.Resource;
-import java.time.LocalDateTime;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.time.LocalDateTime;
 
 /**
  * 保单服务实现类
@@ -29,6 +33,9 @@ public class PolicyServiceImpl extends ServiceImpl<PolicyMapper, Policy> impleme
 
     @Resource
     private PolicyMapper policyMapper;
+
+    @Resource
+    private NotificationService notificationService;
 
     @Override
     public IPage<PolicyDetailDTO> queryPolicyPage(PolicyQueryDTO queryDTO) {
@@ -88,12 +95,7 @@ public class PolicyServiceImpl extends ServiceImpl<PolicyMapper, Policy> impleme
             queryWrapper.le(Policy::getEffectiveDate, queryDTO.getEffectiveDateEnd());
         }
         
-        // 排序
-        if ("asc".equalsIgnoreCase(queryDTO.getOrderDirection())) {
-            queryWrapper.orderByAsc(queryDTO.getOrderBy());
-        } else {
-            queryWrapper.orderByDesc(queryDTO.getOrderBy());
-        }
+        applySort(queryWrapper, queryDTO.getOrderBy(), queryDTO.getOrderDirection());
         
         // 执行分页查询
         Page<Policy> page = new Page<>(queryDTO.getPageNum(), queryDTO.getPageSize());
@@ -183,6 +185,13 @@ public class PolicyServiceImpl extends ServiceImpl<PolicyMapper, Policy> impleme
         }
         
         policyMapper.updateById(policy);
+        notificationService.sendPolicyNotification(
+                policy.getEnterpriseId(),
+                policy.getApplicantUserId(),
+                policy.getId(),
+                "UPDATED",
+                "保单 " + policy.getPolicyNo() + " 已更新，当前状态为：" + policy.getStatusName()
+        );
         
         // TODO: 记录修改日志
         log.info("保单修改成功，保单ID：{}, 修改人：{}", policy.getId(), SecurityUtil.getCurrentUsername());
@@ -232,6 +241,14 @@ public class PolicyServiceImpl extends ServiceImpl<PolicyMapper, Policy> impleme
         }
         
         policyMapper.updateById(policy);
+        notificationService.sendPolicyNotification(
+                policy.getEnterpriseId(),
+                policy.getApplicantUserId(),
+                policy.getId(),
+                "cancel".equals(cancelDTO.getOperationType()) ? "CANCELLED" : "SURRENDERED",
+                "保单 " + policy.getPolicyNo() + ("cancel".equals(cancelDTO.getOperationType()) ? " 已撤销" : " 已申请退保")
+                        + "，原因：" + cancelDTO.getReason()
+        );
         
         // TODO: 记录操作日志
         log.info("保单{}成功，保单ID：{}, 操作人：{}", 
@@ -307,6 +324,40 @@ public class PolicyServiceImpl extends ServiceImpl<PolicyMapper, Policy> impleme
     }
 
     @Override
+    public void exportPolicies(PolicyQueryDTO queryDTO, HttpServletResponse response) {
+        queryDTO.setPageNum(1);
+        queryDTO.setPageSize(1000);
+        List<PolicyDetailDTO> policies = queryPolicyPage(queryDTO).getRecords();
+
+        String fileName = URLEncoder.encode("保单列表.csv", StandardCharsets.UTF_8);
+        response.setContentType("text/csv;charset=UTF-8");
+        response.setHeader("Content-Disposition", "attachment; filename*=UTF-8''" + fileName);
+
+        try {
+            response.getWriter().write('\uFEFF');
+            response.getWriter().write("保单号,投保人,货物名称,保司,贸易方向,运输方式,保费金额,投保日期,生效日期,到期日期,状态\n");
+            for (PolicyDetailDTO policy : policies) {
+                response.getWriter().write(String.join(",",
+                        csv(policy.getPolicyNo()),
+                        csv(policy.getApplicantName()),
+                        csv(policy.getCargoName()),
+                        csv(policy.getInsurerName()),
+                        csv(policy.getTradeDirectionName()),
+                        csv(policy.getTransportModeName()),
+                        csv(policy.getPremiumAmount()),
+                        csv(policy.getApplicationDate()),
+                        csv(policy.getEffectiveDate()),
+                        csv(policy.getExpiryDate()),
+                        csv(policy.getStatusName())
+                ));
+                response.getWriter().write("\n");
+            }
+        } catch (IOException e) {
+            throw new BusinessException("保单导出失败");
+        }
+    }
+
+    @Override
     public void generatePolicy(String applicationId) {
         // TODO: 根据投保申请生成保单
         // 需要调用保险公司的接口生成正式保单
@@ -374,5 +425,54 @@ public class PolicyServiceImpl extends ServiceImpl<PolicyMapper, Policy> impleme
     private boolean isStatusAllowRenew(Integer status) {
         // 已生效或已过期的保单允许续保
         return status != null && (status == 4 || status == 7);
+    }
+
+    private void applySort(LambdaQueryWrapper<Policy> queryWrapper, String orderBy, String orderDirection) {
+        boolean asc = "asc".equalsIgnoreCase(orderDirection);
+        String sortField = orderBy == null ? "application_date" : orderBy;
+
+        switch (sortField) {
+            case "effective_date":
+                if (asc) {
+                    queryWrapper.orderByAsc(Policy::getEffectiveDate);
+                } else {
+                    queryWrapper.orderByDesc(Policy::getEffectiveDate);
+                }
+                break;
+            case "expiry_date":
+                if (asc) {
+                    queryWrapper.orderByAsc(Policy::getExpiryDate);
+                } else {
+                    queryWrapper.orderByDesc(Policy::getExpiryDate);
+                }
+                break;
+            case "premium_amount":
+                if (asc) {
+                    queryWrapper.orderByAsc(Policy::getPremiumAmount);
+                } else {
+                    queryWrapper.orderByDesc(Policy::getPremiumAmount);
+                }
+                break;
+            case "created_at":
+                if (asc) {
+                    queryWrapper.orderByAsc(Policy::getCreatedAt);
+                } else {
+                    queryWrapper.orderByDesc(Policy::getCreatedAt);
+                }
+                break;
+            case "application_date":
+            default:
+                if (asc) {
+                    queryWrapper.orderByAsc(Policy::getApplicationDate);
+                } else {
+                    queryWrapper.orderByDesc(Policy::getApplicationDate);
+                }
+                break;
+        }
+    }
+
+    private String csv(Object value) {
+        String text = value == null ? "" : String.valueOf(value);
+        return "\"" + text.replace("\"", "\"\"") + "\"";
     }
 }

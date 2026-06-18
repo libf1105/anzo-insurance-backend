@@ -5,8 +5,11 @@ import cn.hutool.core.util.StrUtil;
 import com.anzo.insurance.common.exception.BusinessException;
 import com.anzo.insurance.common.exception.ErrorCode;
 import com.anzo.insurance.modules.auth.dto.AuthResponseDTO;
+import com.anzo.insurance.modules.auth.dto.ChangePasswordDTO;
 import com.anzo.insurance.modules.auth.dto.LoginDTO;
 import com.anzo.insurance.modules.auth.dto.RegisterDTO;
+import com.anzo.insurance.modules.auth.dto.ResetPasswordDTO;
+import com.anzo.insurance.modules.auth.dto.UpdateProfileDTO;
 import com.anzo.insurance.modules.auth.entity.Enterprise;
 import com.anzo.insurance.modules.auth.entity.User;
 import com.anzo.insurance.modules.auth.repository.EnterpriseRepository;
@@ -23,6 +26,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -41,7 +45,6 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponseDTO login(LoginDTO loginDTO) {
-        // 验证用户是否存在
         User user = userRepository.findByUsername(loginDTO.getUsername())
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND.getCode(), "用户不存在"));
 
@@ -51,8 +54,10 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // 验证企业状态
-        Enterprise enterprise = enterpriseRepository.findById(user.getEnterpriseId())
-                .orElseThrow(() -> new BusinessException(ErrorCode.ENTERPRISE_NOT_FOUND.getCode(), "企业不存在"));
+        Enterprise enterprise = enterpriseRepository.selectById(user.getEnterpriseId());
+        if (enterprise == null) {
+            throw new BusinessException(ErrorCode.ENTERPRISE_NOT_FOUND.getCode(), "企业不存在");
+        }
 
         if (!Enterprise.Status.ACTIVE.getValue().equals(enterprise.getStatus())) {
             throw new BusinessException(ErrorCode.ENTERPRISE_DISABLED.getCode(), 
@@ -82,33 +87,7 @@ public class AuthServiceImpl implements AuthService {
         String token = jwtService.generateToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
 
-        // 构建响应
-        return AuthResponseDTO.builder()
-                .token(token)
-                .refreshToken(refreshToken)
-                .tokenType("Bearer")
-                .expiresIn(jwtService.getExpirationTime())
-                .user(AuthResponseDTO.UserDTO.builder()
-                        .id(user.getId())
-                        .username(user.getUsername())
-                        .realName(user.getRealName())
-                        .phone(user.getPhone())
-                        .email(user.getEmail())
-                        .role(user.getRole())
-                        .status(user.getStatus())
-                        .lastLoginAt(user.getLastLoginAt() != null ? 
-                            user.getLastLoginAt().toString() : null)
-                        .build())
-                .enterprise(AuthResponseDTO.EnterpriseDTO.builder()
-                        .id(enterprise.getId())
-                        .name(enterprise.getName())
-                        .creditCode(enterprise.getCreditCode())
-                        .status(enterprise.getStatus())
-                        .balance(enterprise.getBalance().toString())
-                        .contactName(enterprise.getContactName())
-                        .contactPhone(enterprise.getContactPhone())
-                        .build())
-                .build();
+        return buildAuthResponse(user, enterprise, token, refreshToken);
     }
 
     @Override
@@ -133,7 +112,7 @@ public class AuthServiceImpl implements AuthService {
         enterprise.setContactPhone(registerDTO.getContactPhone());
         enterprise.setContactEmail(registerDTO.getContactEmail());
         enterprise.setStatus(Enterprise.Status.PENDING_REVIEW.getValue());
-        enterprise.setBalance("0");
+        enterprise.setBalance(BigDecimal.ZERO);
         enterprise.setCreatedAt(LocalDateTime.now());
 
         enterpriseRepository.insert(enterprise);
@@ -157,31 +136,7 @@ public class AuthServiceImpl implements AuthService {
         String token = jwtService.generateToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
 
-        // 构建响应
-        return AuthResponseDTO.builder()
-                .token(token)
-                .refreshToken(refreshToken)
-                .tokenType("Bearer")
-                .expiresIn(jwtService.getExpirationTime())
-                .user(AuthResponseDTO.UserDTO.builder()
-                        .id(user.getId())
-                        .username(user.getUsername())
-                        .realName(user.getRealName())
-                        .phone(user.getPhone())
-                        .email(user.getEmail())
-                        .role(user.getRole())
-                        .status(user.getStatus())
-                        .build())
-                .enterprise(AuthResponseDTO.EnterpriseDTO.builder()
-                        .id(enterprise.getId())
-                        .name(enterprise.getName())
-                        .creditCode(enterprise.getCreditCode())
-                        .status(enterprise.getStatus())
-                        .balance(enterprise.getBalance())
-                        .contactName(enterprise.getContactName())
-                        .contactPhone(enterprise.getContactPhone())
-                        .build())
-                .build();
+        return buildAuthResponse(user, enterprise, token, refreshToken);
     }
 
     @Override
@@ -221,38 +176,15 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // 获取企业信息
-        Enterprise enterprise = enterpriseRepository.findById(user.getEnterpriseId())
-                .orElseThrow(() -> new BusinessException(ErrorCode.ENTERPRISE_NOT_FOUND.getCode(), "企业不存在"));
+        Enterprise enterprise = enterpriseRepository.selectById(user.getEnterpriseId());
+        if (enterprise == null) {
+            throw new BusinessException(ErrorCode.ENTERPRISE_NOT_FOUND.getCode(), "企业不存在");
+        }
 
         // 生成新的access token
         String newToken = jwtService.generateToken(user);
 
-        return AuthResponseDTO.builder()
-                .token(newToken)
-                .refreshToken(refreshToken) // 使用原来的refreshToken
-                .tokenType("Bearer")
-                .expiresIn(jwtService.getExpirationTime())
-                .user(AuthResponseDTO.UserDTO.builder()
-                        .id(user.getId())
-                        .username(user.getUsername())
-                        .realName(user.getRealName())
-                        .phone(user.getPhone())
-                        .email(user.getEmail())
-                        .role(user.getRole())
-                        .status(user.getStatus())
-                        .lastLoginAt(user.getLastLoginAt() != null ? 
-                            user.getLastLoginAt().toString() : null)
-                        .build())
-                .enterprise(AuthResponseDTO.EnterpriseDTO.builder()
-                        .id(enterprise.getId())
-                        .name(enterprise.getName())
-                        .creditCode(enterprise.getCreditCode())
-                        .status(enterprise.getStatus())
-                        .balance(enterprise.getBalance())
-                        .contactName(enterprise.getContactName())
-                        .contactPhone(enterprise.getContactPhone())
-                        .build())
-                .build();
+        return buildAuthResponse(user, enterprise, newToken, refreshToken);
     }
 
     @Override
@@ -268,10 +200,83 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND.getCode(), "用户不存在"));
 
         // 获取企业信息
-        Enterprise enterprise = enterpriseRepository.findById(user.getEnterpriseId())
-                .orElseThrow(() -> new BusinessException(ErrorCode.ENTERPRISE_NOT_FOUND.getCode(), "企业不存在"));
+        Enterprise enterprise = enterpriseRepository.selectById(user.getEnterpriseId());
+        if (enterprise == null) {
+            throw new BusinessException(ErrorCode.ENTERPRISE_NOT_FOUND.getCode(), "企业不存在");
+        }
 
+        return buildAuthResponse(user, enterprise, null, null);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public AuthResponseDTO updateProfile(UpdateProfileDTO updateProfileDTO) {
+        User user = getCurrentUserEntity();
+        if (StrUtil.isNotBlank(updateProfileDTO.getPhone()) && !updateProfileDTO.getPhone().equals(user.getPhone())) {
+            userRepository.findByPhone(updateProfileDTO.getPhone()).ifPresent(existingUser -> {
+                if (!existingUser.getId().equals(user.getId())) {
+                    throw new BusinessException(ErrorCode.USER_EXISTS.getCode(), "手机号已被其他账号使用");
+                }
+            });
+            user.setPhone(updateProfileDTO.getPhone());
+        }
+
+        user.setRealName(updateProfileDTO.getRealName());
+        user.setEmail(updateProfileDTO.getEmail());
+        user.setUpdatedAt(LocalDateTime.now());
+        userRepository.updateById(user);
+
+        Enterprise enterprise = enterpriseRepository.selectById(user.getEnterpriseId());
+        return buildAuthResponse(user, enterprise, null, null);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void changePassword(ChangePasswordDTO changePasswordDTO) {
+        User user = getCurrentUserEntity();
+        if (!passwordEncoder.matches(changePasswordDTO.getOldPassword(), user.getPasswordHash())) {
+            throw new BusinessException(ErrorCode.PASSWORD_ERROR.getCode(), "旧密码不正确");
+        }
+        if (passwordEncoder.matches(changePasswordDTO.getNewPassword(), user.getPasswordHash())) {
+            throw new BusinessException(ErrorCode.BUSINESS_ERROR.getCode(), "新密码不能与旧密码相同");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(changePasswordDTO.getNewPassword()));
+        user.setUpdatedAt(LocalDateTime.now());
+        userRepository.updateById(user);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void resetPassword(ResetPasswordDTO resetPasswordDTO) {
+        User user = userRepository.findByUsername(resetPasswordDTO.getUsername())
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND.getCode(), "用户不存在"));
+        if (!resetPasswordDTO.getPhone().equals(user.getPhone())) {
+            throw new BusinessException(ErrorCode.BUSINESS_ERROR.getCode(), "手机号校验失败");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(resetPasswordDTO.getNewPassword()));
+        user.setUpdatedAt(LocalDateTime.now());
+        userRepository.updateById(user);
+    }
+
+    private User getCurrentUserEntity() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED.getCode(), "用户未登录");
+        }
+
+        String username = authentication.getName();
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND.getCode(), "用户不存在"));
+    }
+
+    private AuthResponseDTO buildAuthResponse(User user, Enterprise enterprise, String token, String refreshToken) {
         return AuthResponseDTO.builder()
+                .token(token)
+                .refreshToken(refreshToken)
+                .tokenType("Bearer")
+                .expiresIn(jwtService.getExpirationTime())
                 .user(AuthResponseDTO.UserDTO.builder()
                         .id(user.getId())
                         .username(user.getUsername())
@@ -280,15 +285,14 @@ public class AuthServiceImpl implements AuthService {
                         .email(user.getEmail())
                         .role(user.getRole())
                         .status(user.getStatus())
-                        .lastLoginAt(user.getLastLoginAt() != null ? 
-                            user.getLastLoginAt().toString() : null)
+                        .lastLoginAt(user.getLastLoginAt() != null ? user.getLastLoginAt().toString() : null)
                         .build())
-                .enterprise(AuthResponseDTO.EnterpriseDTO.builder()
+                .enterprise(enterprise == null ? null : AuthResponseDTO.EnterpriseDTO.builder()
                         .id(enterprise.getId())
                         .name(enterprise.getName())
                         .creditCode(enterprise.getCreditCode())
                         .status(enterprise.getStatus())
-                        .balance(enterprise.getBalance())
+                        .balance(enterprise.getBalance() == null ? "0" : enterprise.getBalance().toString())
                         .contactName(enterprise.getContactName())
                         .contactPhone(enterprise.getContactPhone())
                         .build())

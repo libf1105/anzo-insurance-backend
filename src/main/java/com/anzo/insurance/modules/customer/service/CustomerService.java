@@ -4,6 +4,7 @@ import com.anzo.insurance.modules.customer.dto.*;
 import com.anzo.insurance.modules.customer.entity.Customer;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 
+import java.util.Map;
 import java.util.List;
 
 /**
@@ -40,6 +41,16 @@ public interface CustomerService {
      * 分页查询客户
      */
     Page<CustomerResponseDTO> queryCustomers(CustomerQueryDTO queryDTO);
+
+    /**
+     * 查询客户列表（不分页，用于导出）
+     */
+    List<CustomerResponseDTO> listCustomers(CustomerQueryDTO queryDTO);
+
+    /**
+     * 获取客户统计
+     */
+    Map<String, Object> getCustomerStatistics();
     
     /**
      * 根据企业ID查询客户列表

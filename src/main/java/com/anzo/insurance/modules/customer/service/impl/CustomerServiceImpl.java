@@ -15,8 +15,10 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -36,7 +38,7 @@ public class CustomerServiceImpl implements CustomerService {
         if (dto.getCreditCode() != null && !dto.getCreditCode().isEmpty()) {
             boolean exists = customerMapper.existsByCreditCode(SecurityUtil.getCurrentEnterpriseId(), dto.getCreditCode());
             if (exists) {
-                throw new BusinessException(ErrorCode.CUSTOMER_CREDIT_CODE_EXISTS);
+                throw new BusinessException(ErrorCode.CUSTOMER_CREDIT_CODE_EXISTS.getCode(), ErrorCode.CUSTOMER_CREDIT_CODE_EXISTS.getMessage());
             }
         }
         
@@ -48,7 +50,7 @@ public class CustomerServiceImpl implements CustomerService {
         
         int result = customerMapper.insert(customer);
         if (result <= 0) {
-            throw new BusinessException(ErrorCode.CUSTOMER_CREATE_FAILED);
+            throw new BusinessException(ErrorCode.CUSTOMER_CREATE_FAILED.getCode(), ErrorCode.CUSTOMER_CREATE_FAILED.getMessage());
         }
         
         return convertToResponseDTO(customer);
@@ -64,7 +66,7 @@ public class CustomerServiceImpl implements CustomerService {
                 && !dto.getCreditCode().equals(customer.getCreditCode())) {
             boolean exists = customerMapper.existsByCreditCode(SecurityUtil.getCurrentEnterpriseId(), dto.getCreditCode());
             if (exists) {
-                throw new BusinessException(ErrorCode.CUSTOMER_CREDIT_CODE_EXISTS);
+                throw new BusinessException(ErrorCode.CUSTOMER_CREDIT_CODE_EXISTS.getCode(), ErrorCode.CUSTOMER_CREDIT_CODE_EXISTS.getMessage());
             }
         }
         
@@ -73,7 +75,7 @@ public class CustomerServiceImpl implements CustomerService {
         
         int result = customerMapper.updateById(customer);
         if (result <= 0) {
-            throw new BusinessException(ErrorCode.CUSTOMER_UPDATE_FAILED);
+            throw new BusinessException(ErrorCode.CUSTOMER_UPDATE_FAILED.getCode(), ErrorCode.CUSTOMER_UPDATE_FAILED.getMessage());
         }
         
         return convertToResponseDTO(customer);
@@ -94,7 +96,7 @@ public class CustomerServiceImpl implements CustomerService {
         
         int result = customerMapper.updateById(customer);
         if (result <= 0) {
-            throw new BusinessException(ErrorCode.CUSTOMER_DELETE_FAILED);
+            throw new BusinessException(ErrorCode.CUSTOMER_DELETE_FAILED.getCode(), ErrorCode.CUSTOMER_DELETE_FAILED.getMessage());
         }
     }
     
@@ -108,29 +110,7 @@ public class CustomerServiceImpl implements CustomerService {
     
     @Override
     public Page<CustomerResponseDTO> queryCustomers(CustomerQueryDTO queryDTO) {
-        LambdaQueryWrapper<Customer> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Customer::getEnterpriseId, SecurityUtil.getCurrentEnterpriseId())
-                    .eq(Customer::getDeleted, false);
-        
-        // 添加查询条件
-        if (queryDTO.getName() != null && !queryDTO.getName().isEmpty()) {
-            queryWrapper.like(Customer::getName, queryDTO.getName());
-        }
-        if (queryDTO.getCreditCode() != null && !queryDTO.getCreditCode().isEmpty()) {
-            queryWrapper.eq(Customer::getCreditCode, queryDTO.getCreditCode());
-        }
-        if (queryDTO.getContactName() != null && !queryDTO.getContactName().isEmpty()) {
-            queryWrapper.like(Customer::getContactName, queryDTO.getContactName());
-        }
-        if (queryDTO.getContactPhone() != null && !queryDTO.getContactPhone().isEmpty()) {
-            queryWrapper.eq(Customer::getContactPhone, queryDTO.getContactPhone());
-        }
-        if (queryDTO.getStatus() != null && !queryDTO.getStatus().isEmpty()) {
-            queryWrapper.eq(Customer::getStatus, queryDTO.getStatus());
-        }
-        
-        queryWrapper.orderByDesc(Customer::getCreatedAt);
-        
+        LambdaQueryWrapper<Customer> queryWrapper = buildQueryWrapper(queryDTO);
         Page<Customer> page = new Page<>(queryDTO.getPage(), queryDTO.getSize());
         Page<Customer> customerPage = customerMapper.selectPage(page, queryWrapper);
         
@@ -143,6 +123,36 @@ public class CustomerServiceImpl implements CustomerService {
         
         resultPage.setRecords(records);
         return resultPage;
+    }
+
+    @Override
+    public List<CustomerResponseDTO> listCustomers(CustomerQueryDTO queryDTO) {
+        return customerMapper.selectList(buildQueryWrapper(queryDTO)).stream()
+                .map(this::convertToResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Map<String, Object> getCustomerStatistics() {
+        LambdaQueryWrapper<Customer> queryWrapper = new LambdaQueryWrapper<Customer>()
+                .eq(Customer::getEnterpriseId, SecurityUtil.getCurrentEnterpriseId())
+                .eq(Customer::getDeleted, false);
+
+        List<Customer> customers = customerMapper.selectList(queryWrapper);
+        long activeCount = customers.stream().filter(item -> "ACTIVE".equals(item.getStatus())).count();
+        long disabledCount = customers.stream().filter(item -> "DISABLED".equals(item.getStatus())).count();
+        YearMonth currentMonth = YearMonth.now();
+        long monthlyNewCount = customers.stream()
+                .filter(item -> item.getCreatedAt() != null)
+                .filter(item -> YearMonth.from(item.getCreatedAt()).equals(currentMonth))
+                .count();
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("totalCount", customers.size());
+        result.put("activeCount", activeCount);
+        result.put("disabledCount", disabledCount);
+        result.put("monthlyNewCount", monthlyNewCount);
+        return result;
     }
     
     @Override
@@ -162,7 +172,7 @@ public class CustomerServiceImpl implements CustomerService {
         
         int result = customerMapper.updateById(customer);
         if (result <= 0) {
-            throw new BusinessException(ErrorCode.CUSTOMER_UPDATE_FAILED);
+            throw new BusinessException(ErrorCode.CUSTOMER_UPDATE_FAILED.getCode(), ErrorCode.CUSTOMER_UPDATE_FAILED.getMessage());
         }
         
         return convertToResponseDTO(customer);
@@ -172,12 +182,12 @@ public class CustomerServiceImpl implements CustomerService {
     public Customer getCustomerEntity(String customerId) {
         Customer customer = customerMapper.selectById(customerId);
         if (customer == null || customer.getDeleted()) {
-            throw new BusinessException(ErrorCode.CUSTOMER_NOT_FOUND);
+            throw new BusinessException(ErrorCode.CUSTOMER_NOT_FOUND.getCode(), ErrorCode.CUSTOMER_NOT_FOUND.getMessage());
         }
         
         // 检查权限：只能操作本企业的客户
         if (!customer.getEnterpriseId().equals(SecurityUtil.getCurrentEnterpriseId())) {
-            throw new BusinessException(ErrorCode.FORBIDDEN);
+            throw new BusinessException(ErrorCode.FORBIDDEN.getCode(), ErrorCode.FORBIDDEN.getMessage());
         }
         
         return customer;
@@ -189,5 +199,30 @@ public class CustomerServiceImpl implements CustomerService {
         dto.setCreatedAt(customer.getCreatedAt());
         dto.setUpdatedAt(customer.getUpdatedAt());
         return dto;
+    }
+
+    private LambdaQueryWrapper<Customer> buildQueryWrapper(CustomerQueryDTO queryDTO) {
+        LambdaQueryWrapper<Customer> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Customer::getEnterpriseId, SecurityUtil.getCurrentEnterpriseId())
+                .eq(Customer::getDeleted, false);
+
+        if (queryDTO.getName() != null && !queryDTO.getName().isEmpty()) {
+            queryWrapper.like(Customer::getName, queryDTO.getName());
+        }
+        if (queryDTO.getCreditCode() != null && !queryDTO.getCreditCode().isEmpty()) {
+            queryWrapper.eq(Customer::getCreditCode, queryDTO.getCreditCode());
+        }
+        if (queryDTO.getContactName() != null && !queryDTO.getContactName().isEmpty()) {
+            queryWrapper.like(Customer::getContactName, queryDTO.getContactName());
+        }
+        if (queryDTO.getContactPhone() != null && !queryDTO.getContactPhone().isEmpty()) {
+            queryWrapper.eq(Customer::getContactPhone, queryDTO.getContactPhone());
+        }
+        if (queryDTO.getStatus() != null && !queryDTO.getStatus().isEmpty()) {
+            queryWrapper.eq(Customer::getStatus, queryDTO.getStatus());
+        }
+
+        queryWrapper.orderByDesc(Customer::getCreatedAt);
+        return queryWrapper;
     }
 }

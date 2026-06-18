@@ -106,14 +106,13 @@ public class BillController {
     public ApiResponse<String> downloadBillFile(
             @ApiParam("账单ID") @PathVariable String id) {
         String fileUrl = billService.downloadBillFile(id);
-        return ApiResponse.success(fileUrl, "账单文件下载地址");
+        return ApiResponse.success(fileUrl);
     }
 
     @ApiOperation("导出账单列表")
     @PostMapping("/export")
-    public ApiResponse<Void> exportBills(@RequestBody BillQueryDTO queryDTO, 
+    public void exportBills(@RequestBody BillQueryDTO queryDTO,
             jakarta.servlet.http.HttpServletResponse response) {
         billService.exportBills(queryDTO, response);
-        return ApiResponse.success();
     }
 }

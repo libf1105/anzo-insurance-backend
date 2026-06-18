@@ -67,6 +67,13 @@ public class InsuranceController {
         InsuranceApplication application = insuranceService.getApplication(id);
         return ApiResponse.success(application);
     }
+
+    @Operation(summary = "删除投保申请")
+    @DeleteMapping("/{applicationId}")
+    public ApiResponse<Void> deleteApplication(@PathVariable String applicationId) {
+        insuranceService.deleteApplication(applicationId);
+        return ApiResponse.success();
+    }
     
     @Operation(summary = "获取投保申请列表")
     @GetMapping("/applications")
@@ -97,6 +104,13 @@ public class InsuranceController {
         List<InsuranceDraftDTO> drafts = insuranceService.getDrafts();
         return ApiResponse.success(drafts);
     }
+
+    @Operation(summary = "获取投保草稿详情")
+    @GetMapping("/drafts/{draftId}")
+    public ApiResponse<InsuranceDraftDTO> getDraft(@PathVariable String draftId) {
+        InsuranceDraftDTO draft = insuranceService.getDraft(draftId);
+        return ApiResponse.success(draft);
+    }
     
     @Operation(summary = "删除投保草稿")
     @DeleteMapping("/drafts/{draftId}")
@@ -117,6 +131,13 @@ public class InsuranceController {
     public ApiResponse<List<InsuranceTemplateDTO>> getTemplates() {
         List<InsuranceTemplateDTO> templates = insuranceService.getTemplates();
         return ApiResponse.success(templates);
+    }
+
+    @Operation(summary = "获取投保模板详情")
+    @GetMapping("/templates/{templateId}")
+    public ApiResponse<InsuranceTemplateDTO> getTemplate(@PathVariable String templateId) {
+        InsuranceTemplateDTO template = insuranceService.getTemplate(templateId);
+        return ApiResponse.success(template);
     }
     
     @Operation(summary = "删除投保模板")

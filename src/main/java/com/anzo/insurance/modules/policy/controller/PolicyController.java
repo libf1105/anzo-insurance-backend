@@ -66,14 +66,12 @@ public class PolicyController {
     public ApiResponse<String> downloadPolicyFile(
             @ApiParam("保单ID") @PathVariable String id) {
         String fileUrl = policyService.downloadPolicyFile(id);
-        return ApiResponse.success(fileUrl, "文件下载地址");
+        return ApiResponse.success(fileUrl);
     }
 
     @ApiOperation("导出保单列表")
     @PostMapping("/export")
-    public ApiResponse<Void> exportPolicies(@RequestBody PolicyQueryDTO queryDTO, HttpServletResponse response) {
-        // TODO: 实现导出功能
-        // policyService.exportPolicies(queryDTO, response);
-        return ApiResponse.success();
+    public void exportPolicies(@RequestBody PolicyQueryDTO queryDTO, HttpServletResponse response) {
+        policyService.exportPolicies(queryDTO, response);
     }
 }

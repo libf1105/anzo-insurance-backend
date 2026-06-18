@@ -1,9 +1,12 @@
 package com.anzo.insurance.modules.auth.controller;
 
 import com.anzo.insurance.common.response.ApiResponse;
+import com.anzo.insurance.modules.auth.dto.ChangePasswordDTO;
 import com.anzo.insurance.modules.auth.dto.LoginDTO;
 import com.anzo.insurance.modules.auth.dto.RegisterDTO;
 import com.anzo.insurance.modules.auth.dto.AuthResponseDTO;
+import com.anzo.insurance.modules.auth.dto.ResetPasswordDTO;
+import com.anzo.insurance.modules.auth.dto.UpdateProfileDTO;
 import com.anzo.insurance.modules.auth.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -55,5 +58,25 @@ public class AuthController {
     public ApiResponse<AuthResponseDTO> getCurrentUser() {
         AuthResponseDTO response = authService.getCurrentUser();
         return ApiResponse.success(response);
+    }
+
+    @Operation(summary = "更新当前用户资料")
+    @PutMapping("/profile")
+    public ApiResponse<AuthResponseDTO> updateProfile(@Valid @RequestBody UpdateProfileDTO updateProfileDTO) {
+        return ApiResponse.success(authService.updateProfile(updateProfileDTO));
+    }
+
+    @Operation(summary = "修改密码")
+    @PutMapping("/change-password")
+    public ApiResponse<Void> changePassword(@Valid @RequestBody ChangePasswordDTO changePasswordDTO) {
+        authService.changePassword(changePasswordDTO);
+        return ApiResponse.success();
+    }
+
+    @Operation(summary = "找回密码")
+    @PostMapping("/reset-password")
+    public ApiResponse<Void> resetPassword(@Valid @RequestBody ResetPasswordDTO resetPasswordDTO) {
+        authService.resetPassword(resetPasswordDTO);
+        return ApiResponse.success();
     }
 }

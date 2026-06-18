@@ -387,9 +387,9 @@ public class NotificationServiceImpl implements NotificationService {
                 .ge(Notification::getCreatedAt, monthStart)
                 .eq(Notification::getDeleted, false);
         
-        Integer todayCount = notificationRepository.selectCount(todayQuery);
-        Integer weekCount = notificationRepository.selectCount(weekQuery);
-        Integer monthCount = notificationRepository.selectCount(monthQuery);
+        Integer todayCount = notificationRepository.selectCount(todayQuery).intValue();
+        Integer weekCount = notificationRepository.selectCount(weekQuery).intValue();
+        Integer monthCount = notificationRepository.selectCount(monthQuery).intValue();
         
         return new NotificationStatistics() {
             @Override
@@ -469,16 +469,22 @@ public class NotificationServiceImpl implements NotificationService {
             weekCount += stats.getThisWeekCount();
             monthCount += stats.getThisMonthCount();
         }
+
+        final int finalTotalUnread = totalUnread;
+        final int finalTotalCount = totalCount;
+        final int finalTodayCount = todayCount;
+        final int finalWeekCount = weekCount;
+        final int finalMonthCount = monthCount;
         
         return new NotificationStatistics() {
             @Override
             public Integer getUnreadCount() {
-                return totalUnread;
+                return finalTotalUnread;
             }
             
             @Override
             public Integer getTotalCount() {
-                return totalCount;
+                return finalTotalCount;
             }
             
             @Override
@@ -508,22 +514,22 @@ public class NotificationServiceImpl implements NotificationService {
             @Override
             public Integer getInfoCount() {
                 // 简化实现
-                return totalCount;
+                return finalTotalCount;
             }
             
             @Override
             public Integer getTodayCount() {
-                return todayCount;
+                return finalTodayCount;
             }
             
             @Override
             public Integer getThisWeekCount() {
-                return weekCount;
+                return finalWeekCount;
             }
             
             @Override
             public Integer getThisMonthCount() {
-                return monthCount;
+                return finalMonthCount;
             }
         };
     }

@@ -1,8 +1,9 @@
 package com.anzo.insurance.modules.policy.service;
 
-import com.anzo.insurance.common.response.ApiResponse;
 import com.anzo.insurance.modules.policy.dto.*;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * 保单服务接口
@@ -38,6 +39,11 @@ public interface PolicyService {
      * 下载保单文件
      */
     String downloadPolicyFile(String id);
+
+    /**
+     * 导出保单列表
+     */
+    void exportPolicies(PolicyQueryDTO queryDTO, HttpServletResponse response);
 
     /**
      * 生成保单

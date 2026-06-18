@@ -1,5 +1,6 @@
 package com.anzo.insurance.common.config;
 
+import com.anzo.insurance.common.security.SecurityUtil;
 import com.baomidou.mybatisplus.annotation.DbType;
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
@@ -52,12 +53,9 @@ public class MybatisConfig implements MetaObjectHandler {
      */
     private String getCurrentUserId() {
         try {
-            // 从SecurityContext获取当前用户
-            Object principal = org.springframework.security.core.context.SecurityContextHolder
-                .getContext().getAuthentication().getPrincipal();
-            
-            if (principal instanceof com.anzo.insurance.common.filter.JwtAuthenticationFilter.JwtAuthentication) {
-                return ((com.anzo.insurance.common.filter.JwtAuthenticationFilter.JwtAuthentication) principal).getUserId();
+            String userId = SecurityUtil.getCurrentUserId();
+            if (userId != null && !userId.isBlank()) {
+                return userId;
             }
         } catch (Exception e) {
             // 忽略异常，返回默认值

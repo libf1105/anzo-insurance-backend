@@ -16,7 +16,10 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import jakarta.annotation.Resource;
+import java.io.IOException;
+import java.net.URLEncoder;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
@@ -300,7 +303,36 @@ public class BillServiceImpl extends ServiceImpl<BillMapper, Bill> implements Bi
 
     @Override
     public void exportBills(BillQueryDTO queryDTO, jakarta.servlet.http.HttpServletResponse response) {
-        throw new BusinessException("账单导出功能暂未实现");
+        queryDTO.setPageNum(1);
+        queryDTO.setPageSize(1000);
+        java.util.List<BillDTO> records = queryBillPage(queryDTO).getRecords();
+
+        String fileName = URLEncoder.encode("账单列表.csv", StandardCharsets.UTF_8);
+        response.setContentType("text/csv;charset=UTF-8");
+        response.setHeader("Content-Disposition", "attachment; filename*=UTF-8''" + fileName);
+
+        try {
+            response.getWriter().write('\uFEFF');
+            response.getWriter().write("账单编号,账单周期,账单金额,已付金额,待付金额,账单状态,对账状态,付款截止日,付款方式,创建时间,备注\n");
+            for (BillDTO bill : records) {
+                response.getWriter().write(String.join(",",
+                        csv(bill.getBillNo()),
+                        csv(bill.getBillingPeriod()),
+                        csv(bill.getBillAmount()),
+                        csv(bill.getPaidAmount()),
+                        csv(bill.getUnpaidAmount()),
+                        csv(bill.getStatusName()),
+                        csv(bill.getReconciliationStatusName()),
+                        csv(bill.getDueDate()),
+                        csv(bill.getPaymentMethodName()),
+                        csv(bill.getCreateTime()),
+                        csv(bill.getRemark())
+                ));
+                response.getWriter().write("\n");
+            }
+        } catch (IOException e) {
+            throw new BusinessException("账单导出失败");
+        }
     }
 
     /**
@@ -385,6 +417,11 @@ public class BillServiceImpl extends ServiceImpl<BillMapper, Bill> implements Bi
             default:
                 return "其他";
         }
+    }
+
+    private String csv(Object value) {
+        String text = value == null ? "" : String.valueOf(value);
+        return "\"" + text.replace("\"", "\"\"") + "\"";
     }
 
     private String generateId() {

@@ -40,6 +40,11 @@ public interface InsuranceService {
      * 获取投保申请详情
      */
     InsuranceApplication getApplication(String id);
+
+    /**
+     * 删除投保申请
+     */
+    void deleteApplication(String applicationId);
     
     /**
      * 获取企业投保列表
@@ -60,6 +65,11 @@ public interface InsuranceService {
      * 获取投保草稿列表
      */
     List<InsuranceDraftDTO> getDrafts();
+
+    /**
+     * 获取投保草稿详情
+     */
+    InsuranceDraftDTO getDraft(String draftId);
     
     /**
      * 删除投保草稿
@@ -75,6 +85,11 @@ public interface InsuranceService {
      * 获取投保模板列表
      */
     List<InsuranceTemplateDTO> getTemplates();
+
+    /**
+     * 获取投保模板详情
+     */
+    InsuranceTemplateDTO getTemplate(String templateId);
     
     /**
      * 删除投保模板

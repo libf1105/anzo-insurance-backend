@@ -5,8 +5,11 @@ import com.anzo.insurance.common.exception.ErrorCode;
 import com.anzo.insurance.common.security.SecurityUtil;
 import com.anzo.insurance.modules.claim.dto.*;
 import com.anzo.insurance.modules.claim.entity.Claim;
+import com.anzo.insurance.modules.claim.entity.ClaimProcessRecord;
 import com.anzo.insurance.modules.claim.repository.ClaimMapper;
+import com.anzo.insurance.modules.claim.repository.ClaimProcessRecordMapper;
 import com.anzo.insurance.modules.claim.service.ClaimService;
+import com.anzo.insurance.modules.message.service.NotificationService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
@@ -15,12 +18,15 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -32,13 +38,14 @@ import java.util.stream.Collectors;
 public class ClaimServiceImpl implements ClaimService {
     
     private final ClaimMapper claimMapper;
+    private final ClaimProcessRecordMapper claimProcessRecordMapper;
+    private final NotificationService notificationService;
     
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
     
     @Override
     @Transactional
     public ClaimResponseDTO createClaim(ClaimCreateDTO dto) {
-        // 生成理赔编号
         String claimNo = generateClaimNo();
         
         Claim claim = new Claim();
@@ -51,8 +58,11 @@ public class ClaimServiceImpl implements ClaimService {
         
         int result = claimMapper.insert(claim);
         if (result <= 0) {
-            throw new BusinessException(ErrorCode.OPERATION_FAILED);
+            throw operationFailed();
         }
+
+        appendProcessRecord(claim, null, claim.getStatus(), "CREATE", "提交理赔报案", null, null, false);
+        sendClaimNotificationSafe(claim, "CREATED", "理赔 " + claim.getClaimNo() + " 已提交，请等待后续处理。");
         
         return convertToResponseDTO(claim);
     }
@@ -67,8 +77,11 @@ public class ClaimServiceImpl implements ClaimService {
         
         int result = claimMapper.updateById(claim);
         if (result <= 0) {
-            throw new BusinessException(ErrorCode.OPERATION_FAILED);
+            throw operationFailed();
         }
+
+        appendProcessRecord(claim, claim.getStatus(), claim.getStatus(), "UPDATE", "更新理赔信息", null, null, false);
+        sendClaimNotificationSafe(claim, "UPDATED", "理赔 " + claim.getClaimNo() + " 信息已更新。");
         
         return convertToResponseDTO(claim);
     }
@@ -85,7 +98,6 @@ public class ClaimServiceImpl implements ClaimService {
         queryWrapper.eq(Claim::getEnterpriseId, SecurityUtil.getCurrentEnterpriseId())
                     .eq(Claim::getDeleted, false);
         
-        // 添加查询条件
         if (queryDTO.getSearchKeyword() != null && !queryDTO.getSearchKeyword().isEmpty()) {
             queryWrapper.and(wrapper -> wrapper
                 .like(Claim::getClaimNo, queryDTO.getSearchKeyword())
@@ -106,7 +118,6 @@ public class ClaimServiceImpl implements ClaimService {
             queryWrapper.le(Claim::getReportDate, queryDTO.getReportEndDate());
         }
         
-        // 排序
         if ("reportDate".equals(queryDTO.getSortField())) {
             if ("desc".equals(queryDTO.getSortOrder())) {
                 queryWrapper.orderByDesc(Claim::getReportDate);
@@ -130,6 +141,46 @@ public class ClaimServiceImpl implements ClaimService {
         resultPage.setRecords(records);
         return resultPage;
     }
+
+    @Override
+    public void exportClaims(ClaimQueryDTO queryDTO, HttpServletResponse response) {
+        queryDTO.setPage(1);
+        queryDTO.setSize(1000);
+        List<ClaimResponseDTO> records = queryClaims(queryDTO).getRecords();
+
+        String fileName = URLEncoder.encode("理赔列表.csv", StandardCharsets.UTF_8);
+        response.setContentType("text/csv;charset=UTF-8");
+        response.setHeader("Content-Disposition", "attachment; filename*=UTF-8''" + fileName);
+
+        try {
+            response.getWriter().write('\uFEFF');
+            response.getWriter().write(
+                    "理赔编号,保单号,被保人,出险类型,理赔金额,货币,报案日期,出险日期,当前状态,材料状态,处理人,审核人,赔付金额,赔付时间,拒赔原因,撤回原因\n");
+            for (ClaimResponseDTO record : records) {
+                response.getWriter().write(String.join(",",
+                        csv(record.getClaimNo()),
+                        csv(record.getPolicyNo()),
+                        csv(record.getInsuredName()),
+                        csv(record.getAccidentTypeName()),
+                        csv(record.getClaimAmount()),
+                        csv(record.getCurrency()),
+                        csv(record.getReportDate()),
+                        csv(record.getAccidentDate()),
+                        csv(record.getStatusName()),
+                        csv(record.getMaterialStatusName()),
+                        csv(record.getHandlerUserName()),
+                        csv(record.getReviewUserName()),
+                        csv(record.getPaymentAmount()),
+                        csv(record.getPaymentAt()),
+                        csv(record.getRejectReason()),
+                        csv(record.getWithdrawReason())
+                ));
+                response.getWriter().write("\n");
+            }
+        } catch (IOException e) {
+            throw new BusinessException("理赔列表导出失败");
+        }
+    }
     
     @Override
     public List<ClaimResponseDTO> getClaimsByPolicy(String policyNo) {
@@ -152,13 +203,11 @@ public class ClaimServiceImpl implements ClaimService {
             dto.setPaymentRate(statistics.getPaymentRate() != null ? statistics.getPaymentRate() : BigDecimal.ZERO);
         }
         
-        // 获取本月新增数量（简化实现）
         LocalDate now = LocalDate.now();
         LocalDate firstDayOfMonth = now.withDayOfMonth(1);
         List<Claim> monthlyClaims = claimMapper.findByReportDateRange(enterpriseId, firstDayOfMonth, now);
         dto.setMonthlyNewCount(monthlyClaims.size());
         
-        // 获取其他统计数据
         List<Claim> allClaims = claimMapper.findByEnterpriseId(enterpriseId);
         dto.setTotalCount(allClaims.size());
         
@@ -176,14 +225,19 @@ public class ClaimServiceImpl implements ClaimService {
     public ClaimResponseDTO submitMaterials(String claimId, List<ClaimMaterialCreateDTO> materials) {
         Claim claim = getClaimEntity(claimId);
         
-        // 更新材料状态
+        String previousStatus = claim.getStatus();
         claim.setMaterialStatus("COMPLETE");
         claim.setUpdatedBy(SecurityUtil.getCurrentUserId());
         
         int result = claimMapper.updateById(claim);
         if (result <= 0) {
-            throw new BusinessException(ErrorCode.OPERATION_FAILED);
+            throw operationFailed();
         }
+
+        appendProcessRecord(claim, previousStatus, claim.getStatus(), "MATERIAL_SUBMIT",
+                "提交理赔材料，共" + materials.size() + "项", null, null, false);
+        sendClaimNotificationSafe(claim, "MATERIAL_SUBMITTED",
+                "理赔 " + claim.getClaimNo() + " 已补充提交材料，共 " + materials.size() + " 项。");
         
         return convertToResponseDTO(claim);
     }
@@ -192,6 +246,7 @@ public class ClaimServiceImpl implements ClaimService {
     @Transactional
     public ClaimResponseDTO reviewMaterials(String claimId, ClaimMaterialReviewDTO reviewDTO) {
         Claim claim = getClaimEntity(claimId);
+        String previousStatus = claim.getStatus();
         
         if (reviewDTO.isApproved()) {
             claim.setMaterialStatus("COMPLETE");
@@ -207,8 +262,14 @@ public class ClaimServiceImpl implements ClaimService {
         
         int result = claimMapper.updateById(claim);
         if (result <= 0) {
-            throw new BusinessException(ErrorCode.OPERATION_FAILED);
+            throw operationFailed();
         }
+
+        appendProcessRecord(claim, previousStatus, claim.getStatus(), "MATERIAL_REVIEW",
+                reviewDTO.getReviewRemark(), null, null, true);
+        sendClaimNotificationSafe(claim, reviewDTO.isApproved() ? "MATERIAL_APPROVED" : "MATERIAL_REJECTED",
+                "理赔 " + claim.getClaimNo() + " 材料审核" + (reviewDTO.isApproved() ? "已通过" : "未通过")
+                        + (reviewDTO.getReviewRemark() != null ? "，说明：" + reviewDTO.getReviewRemark() : ""));
         
         return convertToResponseDTO(claim);
     }
@@ -217,6 +278,7 @@ public class ClaimServiceImpl implements ClaimService {
     @Transactional
     public ClaimResponseDTO assignHandler(String claimId, String handlerUserId, String handlerUserName) {
         Claim claim = getClaimEntity(claimId);
+        String previousStatus = claim.getStatus();
         
         claim.setHandlerUserId(handlerUserId);
         claim.setHandlerUserName(handlerUserName);
@@ -225,8 +287,13 @@ public class ClaimServiceImpl implements ClaimService {
         
         int result = claimMapper.updateById(claim);
         if (result <= 0) {
-            throw new BusinessException(ErrorCode.OPERATION_FAILED);
+            throw operationFailed();
         }
+
+        appendProcessRecord(claim, previousStatus, claim.getStatus(), "ASSIGN_HANDLER",
+                "指派处理人: " + handlerUserName, null, null, true);
+        sendClaimNotificationSafe(claim, "HANDLER_ASSIGNED",
+                "理赔 " + claim.getClaimNo() + " 已指派处理人：" + handlerUserName + "。");
         
         return convertToResponseDTO(claim);
     }
@@ -235,6 +302,7 @@ public class ClaimServiceImpl implements ClaimService {
     @Transactional
     public ClaimResponseDTO submitSurveyReport(String claimId, String surveyReport) {
         Claim claim = getClaimEntity(claimId);
+        String previousStatus = claim.getStatus();
         
         claim.setSurveyReport(surveyReport);
         claim.setSurveyAt(LocalDateTime.now());
@@ -246,8 +314,13 @@ public class ClaimServiceImpl implements ClaimService {
         
         int result = claimMapper.updateById(claim);
         if (result <= 0) {
-            throw new BusinessException(ErrorCode.OPERATION_FAILED);
+            throw operationFailed();
         }
+
+        appendProcessRecord(claim, previousStatus, claim.getStatus(), "SURVEY_REPORT",
+                surveyReport, null, null, true);
+        sendClaimNotificationSafe(claim, "SURVEY_SUBMITTED",
+                "理赔 " + claim.getClaimNo() + " 查勘报告已提交。");
         
         return convertToResponseDTO(claim);
     }
@@ -256,6 +329,7 @@ public class ClaimServiceImpl implements ClaimService {
     @Transactional
     public ClaimResponseDTO reviewClaim(String claimId, String reviewRemark, boolean approved) {
         Claim claim = getClaimEntity(claimId);
+        String previousStatus = claim.getStatus();
         
         claim.setReviewRemark(reviewRemark);
         claim.setReviewAt(LocalDateTime.now());
@@ -274,8 +348,14 @@ public class ClaimServiceImpl implements ClaimService {
         
         int result = claimMapper.updateById(claim);
         if (result <= 0) {
-            throw new BusinessException(ErrorCode.OPERATION_FAILED);
+            throw operationFailed();
         }
+
+        appendProcessRecord(claim, previousStatus, claim.getStatus(), "CLAIM_REVIEW",
+                reviewRemark, null, null, true);
+        sendClaimNotificationSafe(claim, approved ? "APPROVED" : "REJECTED",
+                "理赔 " + claim.getClaimNo() + " 审核" + (approved ? "已通过" : "未通过")
+                        + (reviewRemark != null ? "，意见：" + reviewRemark : ""));
         
         return convertToResponseDTO(claim);
     }
@@ -284,8 +364,10 @@ public class ClaimServiceImpl implements ClaimService {
     @Transactional
     public ClaimResponseDTO processPayment(String claimId, BigDecimal paymentAmount) {
         Claim claim = getClaimEntity(claimId);
+        String previousStatus = claim.getStatus();
         
         claim.setPaymentAmount(paymentAmount);
+        claim.setPaymentCurrency(claim.getCurrency());
         claim.setPaymentAt(LocalDateTime.now());
         claim.setPaymentUserId(SecurityUtil.getCurrentUserId());
         claim.setPaymentUserName(SecurityUtil.getCurrentUsername());
@@ -295,8 +377,13 @@ public class ClaimServiceImpl implements ClaimService {
         
         int result = claimMapper.updateById(claim);
         if (result <= 0) {
-            throw new BusinessException(ErrorCode.OPERATION_FAILED);
+            throw operationFailed();
         }
+
+        appendProcessRecord(claim, previousStatus, claim.getStatus(), "PAYMENT",
+                "赔付金额: " + paymentAmount, null, null, true);
+        sendClaimNotificationSafe(claim, "PAID",
+                "理赔 " + claim.getClaimNo() + " 已完成赔付，金额：" + paymentAmount + " " + claim.getCurrency() + "。");
         
         return convertToResponseDTO(claim);
     }
@@ -305,6 +392,7 @@ public class ClaimServiceImpl implements ClaimService {
     @Transactional
     public ClaimResponseDTO rejectClaim(String claimId, String rejectReason) {
         Claim claim = getClaimEntity(claimId);
+        String previousStatus = claim.getStatus();
         
         claim.setRejectReason(rejectReason);
         claim.setStatus("REJECTED");
@@ -313,8 +401,13 @@ public class ClaimServiceImpl implements ClaimService {
         
         int result = claimMapper.updateById(claim);
         if (result <= 0) {
-            throw new BusinessException(ErrorCode.OPERATION_FAILED);
+            throw operationFailed();
         }
+
+        appendProcessRecord(claim, previousStatus, claim.getStatus(), "REJECT",
+                rejectReason, null, null, true);
+        sendClaimNotificationSafe(claim, "REJECTED",
+                "理赔 " + claim.getClaimNo() + " 已拒赔，原因：" + rejectReason);
         
         return convertToResponseDTO(claim);
     }
@@ -323,6 +416,7 @@ public class ClaimServiceImpl implements ClaimService {
     @Transactional
     public ClaimResponseDTO withdrawClaim(String claimId, String withdrawReason) {
         Claim claim = getClaimEntity(claimId);
+        String previousStatus = claim.getStatus();
         
         claim.setWithdrawReason(withdrawReason);
         claim.setStatus("WITHDRAWN");
@@ -331,23 +425,30 @@ public class ClaimServiceImpl implements ClaimService {
         
         int result = claimMapper.updateById(claim);
         if (result <= 0) {
-            throw new BusinessException(ErrorCode.OPERATION_FAILED);
+            throw operationFailed();
         }
+
+        appendProcessRecord(claim, previousStatus, claim.getStatus(), "WITHDRAW",
+                withdrawReason, null, null, false);
+        sendClaimNotificationSafe(claim, "WITHDRAWN",
+                "理赔 " + claim.getClaimNo() + " 已撤回，原因：" + withdrawReason);
         
         return convertToResponseDTO(claim);
     }
     
     @Override
     public List<ClaimProcessRecordDTO> getProcessRecords(String claimId) {
-        // 简化实现，返回空列表
-        return List.of();
+        getClaimEntity(claimId);
+        return claimProcessRecordMapper.findByClaimId(claimId).stream()
+                .map(this::convertToProcessRecordDTO)
+                .collect(Collectors.toList());
     }
     
     @Override
     @Transactional
     public ClaimResponseDTO addProcessRecord(String claimId, ClaimProcessRecordCreateDTO recordDTO) {
-        // 简化实现，只更新理赔状态
         Claim claim = getClaimEntity(claimId);
+        String previousStatus = claim.getStatus();
         
         if (recordDTO.getToStatus() != null) {
             claim.setStatus(recordDTO.getToStatus());
@@ -358,8 +459,19 @@ public class ClaimServiceImpl implements ClaimService {
         
         int result = claimMapper.updateById(claim);
         if (result <= 0) {
-            throw new BusinessException(ErrorCode.OPERATION_FAILED);
+            throw operationFailed();
         }
+
+        appendProcessRecord(
+                claim,
+                recordDTO.getFromStatus() != null ? recordDTO.getFromStatus() : previousStatus,
+                recordDTO.getToStatus() != null ? recordDTO.getToStatus() : claim.getStatus(),
+                recordDTO.getProcessType(),
+                recordDTO.getProcessContent(),
+                recordDTO.getAttachmentUrl(),
+                recordDTO.getAttachmentName(),
+                Boolean.TRUE.equals(recordDTO.getInternal())
+        );
         
         return convertToResponseDTO(claim);
     }
@@ -367,12 +479,11 @@ public class ClaimServiceImpl implements ClaimService {
     private Claim getClaimEntity(String claimId) {
         Claim claim = claimMapper.selectById(claimId);
         if (claim == null || claim.getDeleted()) {
-            throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND);
+            throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND.getCode(), ErrorCode.RESOURCE_NOT_FOUND.getMessage());
         }
         
-        // 检查权限：只能操作本企业的理赔
         if (!claim.getEnterpriseId().equals(SecurityUtil.getCurrentEnterpriseId())) {
-            throw new BusinessException(ErrorCode.FORBIDDEN);
+            throw new BusinessException(ErrorCode.FORBIDDEN.getCode(), ErrorCode.FORBIDDEN.getMessage());
         }
         
         return claim;
@@ -401,12 +512,53 @@ public class ClaimServiceImpl implements ClaimService {
         dto.setCreatedAt(claim.getCreatedAt());
         dto.setUpdatedAt(claim.getUpdatedAt());
         
-        // 设置状态名称
         dto.setStatusName(getStatusName(claim.getStatus()));
         dto.setAccidentTypeName(getAccidentTypeName(claim.getAccidentType()));
         dto.setMaterialStatusName(getMaterialStatusName(claim.getMaterialStatus()));
         
         return dto;
+    }
+
+    private ClaimProcessRecordDTO convertToProcessRecordDTO(ClaimProcessRecord record) {
+        ClaimProcessRecordDTO dto = new ClaimProcessRecordDTO();
+        BeanUtils.copyProperties(record, dto);
+        return dto;
+    }
+
+    private void appendProcessRecord(Claim claim, String fromStatus, String toStatus, String processType,
+                                     String processContent, String attachmentUrl, String attachmentName,
+                                     boolean internal) {
+        ClaimProcessRecord record = new ClaimProcessRecord();
+        record.setClaimId(claim.getId());
+        record.setFromStatus(fromStatus);
+        record.setToStatus(toStatus);
+        record.setProcessType(processType != null ? processType : "GENERAL");
+        record.setProcessContent(processContent);
+        record.setAttachmentUrl(attachmentUrl);
+        record.setAttachmentName(attachmentName);
+        record.setOperatorUserId(SecurityUtil.getCurrentUserId());
+        record.setOperatorUserName(SecurityUtil.getCurrentUsername());
+        record.setOperationTime(LocalDateTime.now());
+        record.setInternal(internal);
+        claimProcessRecordMapper.insert(record);
+    }
+
+    private BusinessException operationFailed() {
+        return new BusinessException(ErrorCode.OPERATION_FAILED.getCode(), ErrorCode.OPERATION_FAILED.getMessage());
+    }
+
+    private void sendClaimNotificationSafe(Claim claim, String notificationType, String content) {
+        try {
+            notificationService.sendClaimNotification(
+                    claim.getEnterpriseId(),
+                    claim.getHandlerUserId(),
+                    claim.getId(),
+                    notificationType,
+                    content
+            );
+        } catch (Exception e) {
+            log.warn("发送理赔通知失败: claimId={}, error={}", claim.getId(), e.getMessage());
+        }
     }
     
     private String getStatusName(String status) {
@@ -441,5 +593,10 @@ public class ClaimServiceImpl implements ClaimService {
             case "COMPLETE": return "已完整";
             default: return materialStatus;
         }
+    }
+
+    private String csv(Object value) {
+        String text = value == null ? "" : String.valueOf(value);
+        return "\"" + text.replace("\"", "\"\"") + "\"";
     }
 }

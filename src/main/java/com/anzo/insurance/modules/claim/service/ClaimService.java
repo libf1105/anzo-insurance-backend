@@ -2,6 +2,7 @@ package com.anzo.insurance.modules.claim.service;
 
 import com.anzo.insurance.modules.claim.dto.*;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -30,6 +31,11 @@ public interface ClaimService {
      * 分页查询理赔
      */
     Page<ClaimResponseDTO> queryClaims(ClaimQueryDTO queryDTO);
+
+    /**
+     * 导出理赔列表
+     */
+    void exportClaims(ClaimQueryDTO queryDTO, HttpServletResponse response);
     
     /**
      * 根据保单号查询理赔列表

@@ -71,9 +71,8 @@ public class TransactionRecordController {
 
     @ApiOperation("导出交易记录")
     @PostMapping("/export")
-    public ApiResponse<Void> exportTransactions(@RequestBody TransactionQueryDTO queryDTO, 
+    public void exportTransactions(@RequestBody TransactionQueryDTO queryDTO,
             jakarta.servlet.http.HttpServletResponse response) {
         transactionRecordService.exportTransactions(queryDTO, response);
-        return ApiResponse.success();
     }
 }

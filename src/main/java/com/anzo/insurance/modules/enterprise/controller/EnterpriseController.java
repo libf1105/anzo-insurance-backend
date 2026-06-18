@@ -3,15 +3,22 @@ package com.anzo.insurance.modules.enterprise.controller;
 import com.anzo.insurance.common.response.ApiResponse;
 import com.anzo.insurance.modules.auth.entity.Enterprise;
 import com.anzo.insurance.modules.enterprise.dto.EnterpriseQueryDTO;
+import com.anzo.insurance.modules.enterprise.dto.EnterpriseRechargeDTO;
 import com.anzo.insurance.modules.enterprise.dto.EnterpriseReviewDTO;
 import com.anzo.insurance.modules.enterprise.dto.EnterpriseUpdateDTO;
 import com.anzo.insurance.modules.enterprise.service.EnterpriseService;
+import com.anzo.insurance.modules.finance.dto.TransactionQueryDTO;
+import com.anzo.insurance.modules.finance.dto.TransactionRecordDTO;
+import com.anzo.insurance.modules.finance.dto.WalletDTO;
+import com.anzo.insurance.modules.finance.service.TransactionRecordService;
+import com.anzo.insurance.modules.finance.service.WalletService;
+import com.anzo.insurance.modules.message.service.NotificationService;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,7 +28,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +42,9 @@ import java.util.Map;
 public class EnterpriseController {
 
     private final EnterpriseService enterpriseService;
+    private final WalletService walletService;
+    private final TransactionRecordService transactionRecordService;
+    private final NotificationService notificationService;
 
     @Operation(summary = "获取企业信息")
     @GetMapping("/{enterpriseId}")
@@ -167,8 +176,11 @@ public class EnterpriseController {
         detail.put("contactPhone", enterprise.getContactPhone());
         detail.put("email", enterprise.getContactEmail());
         detail.put("address", enterprise.getAddress());
+        detail.put("description", enterprise.getDescription());
         detail.put("status", enterprise.getStatus());
         detail.put("balance", enterprise.getBalance() != null ? enterprise.getBalance() : BigDecimal.ZERO);
+        detail.put("reviewRemark", enterprise.getReviewRemark());
+        detail.put("reviewedAt", enterprise.getReviewAt());
         detail.put("createdAt", enterprise.getCreatedAt());
         detail.put("updatedAt", enterprise.getUpdatedAt());
         
@@ -189,20 +201,27 @@ public class EnterpriseController {
     @PostMapping("/recharge")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'FINANCE')")
     public ApiResponse<Map<String, Object>> rechargeBalance(
-            @RequestParam @NotNull(message = "充值金额不能为空") BigDecimal amount,
-            @RequestParam(required = false) String remark) {
+            @Valid @RequestBody EnterpriseRechargeDTO rechargeDTO) {
         
         Enterprise enterprise = enterpriseService.getCurrentEnterprise();
-        
-        // 调用余额更新服务
+
+        WalletDTO wallet = walletService.getWalletByEnterpriseId(enterprise.getId());
+        walletService.recharge(wallet.getId(), rechargeDTO.getAmount(), 2, null, rechargeDTO.getRemark());
         enterpriseService.updateEnterpriseBalance(
                 enterprise.getId(), 
-                amount.toString(), 
+                rechargeDTO.getAmount().toString(),
                 "RECHARGE"
         );
-        
-        // 获取更新后的企业信息
         enterprise = enterpriseService.getEnterpriseById(enterprise.getId());
+
+        notificationService.sendBalanceNotification(
+                enterprise.getId(),
+                null,
+                "RECHARGE",
+                rechargeDTO.getAmount().toPlainString(),
+                enterprise.getBalance() != null ? enterprise.getBalance().toPlainString() : "0",
+                rechargeDTO.getRemark()
+        );
         
         Map<String, Object> result = new HashMap<>();
         result.put("balance", enterprise.getBalance());
@@ -214,41 +233,41 @@ public class EnterpriseController {
 
     @Operation(summary = "获取余额变动记录")
     @GetMapping("/balance/history")
-    public ApiResponse<List<Map<String, Object>>> getBalanceHistory(
+    public ApiResponse<Map<String, Object>> getBalanceHistory(
             @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "20") Integer size,
+            @RequestParam(required = false) Integer size,
+            @RequestParam(required = false) Integer pageSize,
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate) {
-        
-        // 模拟余额变动记录数据
-        List<Map<String, Object>> history = List.of(
-                Map.of(
-                    "id", "1",
-                    "type", "RECHARGE",
-                    "amount", new BigDecimal("1000.00"),
-                    "balanceAfter", new BigDecimal("1000.00"),
-                    "remark", "在线充值",
-                    "createdAt", LocalDateTime.now().minusDays(2)
-                ),
-                Map.of(
-                    "id", "2",
-                    "type", "CONSUME",
-                    "amount", new BigDecimal("-500.00"),
-                    "balanceAfter", new BigDecimal("500.00"),
-                    "remark", "保单支付",
-                    "createdAt", LocalDateTime.now().minusDays(1)
-                ),
-                Map.of(
-                    "id", "3",
-                    "type", "RECHARGE",
-                    "amount", new BigDecimal("2000.00"),
-                    "balanceAfter", new BigDecimal("2500.00"),
-                    "remark", "银行转账",
-                    "createdAt", LocalDateTime.now()
-                )
-        );
-        
-        return ApiResponse.success(history);
+        Enterprise enterprise = enterpriseService.getCurrentEnterprise();
+        TransactionQueryDTO queryDTO = new TransactionQueryDTO();
+        queryDTO.setEnterpriseId(enterprise.getId());
+        queryDTO.setPageNum(page);
+        queryDTO.setPageSize(pageSize != null ? pageSize : (size != null ? size : 20));
+        queryDTO.setStartTime(startDate);
+        queryDTO.setEndTime(endDate);
+
+        IPage<TransactionRecordDTO> transactionPage = transactionRecordService.queryTransactionPage(queryDTO);
+        List<Map<String, Object>> history = transactionPage.getRecords().stream().map(record -> {
+            Map<String, Object> item = new HashMap<>();
+            item.put("id", record.getId());
+            item.put("type", mapTransactionType(record.getTransactionType()));
+            item.put("amount", record.getAmount());
+            item.put("balanceAfter", record.getAfterBalance());
+            item.put("remark", record.getRemark() != null ? record.getRemark() : record.getBusinessDesc());
+            item.put("createdAt", record.getCreateTime());
+            return item;
+        }).toList();
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("data", history);
+        result.put("page", Map.of(
+                "page", (int) transactionPage.getCurrent(),
+                "pageSize", (int) transactionPage.getSize(),
+                "total", transactionPage.getTotal(),
+                "totalPages", transactionPage.getPages()
+        ));
+        return ApiResponse.success(result);
     }
 
     @Operation(summary = "获取审核状态")
@@ -282,8 +301,25 @@ public class EnterpriseController {
         info.put("contactPhone", enterprise.getContactPhone());
         info.put("email", enterprise.getContactEmail());
         info.put("address", enterprise.getAddress());
+        info.put("description", enterprise.getDescription());
         info.put("status", enterprise.getStatus());
         
         return ApiResponse.success(info);
+    }
+
+    private String mapTransactionType(Integer transactionType) {
+        if (transactionType == null) {
+            return "ADJUST";
+        }
+        switch (transactionType) {
+            case 1:
+                return "RECHARGE";
+            case 2:
+                return "CONSUME";
+            case 4:
+                return "REFUND";
+            default:
+                return "ADJUST";
+        }
     }
 }

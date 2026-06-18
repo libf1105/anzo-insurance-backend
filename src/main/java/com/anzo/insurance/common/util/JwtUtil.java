@@ -9,8 +9,6 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -65,8 +63,8 @@ public class JwtUtil {
      * 生成Token
      */
     private String generateToken(Map<String, Object> claims, long expiration) {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime expirationTime = now.plusMillis(expiration);
+        Date issuedAt = new Date();
+        Date expirationTime = new Date(issuedAt.getTime() + expiration);
         
         return Jwts.builder()
             .header()
@@ -75,8 +73,8 @@ public class JwtUtil {
             .and()
             .claims(claims)
             .subject(claims.get("userId").toString())
-            .issuedAt(Date.from(now.atZone(ZoneId.systemDefault()).toInstant()))
-            .expiration(Date.from(expirationTime.atZone(ZoneId.systemDefault()).toInstant()))
+            .issuedAt(issuedAt)
+            .expiration(expirationTime)
             .signWith(getSecretKey(), Jwts.SIG.HS256)
             .compact();
     }

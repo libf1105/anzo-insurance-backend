@@ -102,15 +102,14 @@ public class InvoiceController {
     public ApiResponse<String> downloadInvoiceFile(
             @ApiParam("发票ID") @PathVariable String id) {
         String fileUrl = invoiceService.downloadInvoiceFile(id);
-        return ApiResponse.success(fileUrl, "发票文件下载地址");
+        return ApiResponse.success(fileUrl);
     }
 
     @ApiOperation("导出发票列表")
     @PostMapping("/export")
-    public ApiResponse<Void> exportInvoices(@RequestBody InvoiceQueryDTO queryDTO, 
+    public void exportInvoices(@RequestBody InvoiceQueryDTO queryDTO,
             jakarta.servlet.http.HttpServletResponse response) {
         invoiceService.exportInvoices(queryDTO, response);
-        return ApiResponse.success();
     }
 
     @ApiOperation("查询可申请发票的账单列表")

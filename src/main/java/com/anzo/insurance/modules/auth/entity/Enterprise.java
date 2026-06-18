@@ -26,6 +26,10 @@ public class Enterprise extends BaseEntity {
     private String contactPhone;
     
     private String contactEmail;
+
+    private String address;
+
+    private String description;
     
     private String licenseUrl;
     

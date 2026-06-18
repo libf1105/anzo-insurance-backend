@@ -25,6 +25,12 @@ public interface UserRepository extends BaseMapper<User> {
      */
     @Select("SELECT COUNT(*) > 0 FROM user WHERE username = #{username} AND deleted = false")
     boolean existsByUsername(@Param("username") String username);
+
+    /**
+     * 根据手机号查找用户
+     */
+    @Select("SELECT * FROM user WHERE phone = #{phone} AND deleted = false")
+    Optional<User> findByPhone(@Param("phone") String phone);
     
     /**
      * 根据企业ID查找用户
