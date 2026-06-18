@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.anzo.insurance.modules.claim.repository.ClaimProcessRecordMapper">
+
+    <resultMap id="ClaimProcessRecordResultMap" type="com.anzo.insurance.modules.claim.entity.ClaimProcessRecord">
+        <id property="id" column="id" />
+        <result property="claimId" column="claim_id" />
+        <result property="fromStatus" column="from_status" />
+        <result property="toStatus" column="to_status" />
+        <result property="processType" column="process_type" />
+        <result property="processContent" column="process_content" />
+        <result property="attachmentUrl" column="attachment_url" />
+        <result property="attachmentName" column="attachment_name" />
+        <result property="operatorUserId" column="operator_user_id" />
+        <result property="operatorUserName" column="operator_user_name" />
+        <result property="operationTime" column="operation_time" />
+        <result property="internal" column="is_internal" />
+        <result property="createdBy" column="created_by" />
+        <result property="createdAt" column="created_at" />
+        <result property="updatedBy" column="updated_by" />
+        <result property="updatedAt" column="updated_at" />
+        <result property="version" column="version" />
+        <result property="deleted" column="deleted" />
+    </resultMap>
+
+    <resultMap id="ProcessTypeCountResultMap" type="com.anzo.insurance.modules.claim.repository.ClaimProcessRecordMapper$ProcessTypeCount">
+        <result property="processType" column="process_type" />
+        <result property="count" column="count" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, claim_id, from_status, to_status, process_type, process_content,
+        attachment_url, attachment_name, operator_user_id, operator_user_name, operation_time, is_internal,
+        created_by, created_at, updated_by, updated_at, version, deleted
+    </sql>
+
+    <select id="getProcessTypeCounts" resultMap="ProcessTypeCountResultMap">
+        SELECT process_type, COUNT(*) as count
+        FROM t_claim_process_record
+        WHERE claim_id = #{claimId} AND deleted = false
+        GROUP BY process_type
+    </select>
+
+</mapper>

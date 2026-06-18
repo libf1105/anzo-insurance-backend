@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.anzo.insurance.modules.finance.repository.InvoiceMapper">
+
+    <!-- 基础结果映射 -->
+    <resultMap id="BaseResultMap" type="com.anzo.insurance.modules.finance.entity.Invoice">
+        <id column="id" property="id" jdbcType="VARCHAR"/>
+        <result column="invoice_no" property="invoiceNo" jdbcType="VARCHAR"/>
+        <result column="enterprise_id" property="enterpriseId" jdbcType="VARCHAR"/>
+        <result column="enterprise_name" property="enterpriseName" jdbcType="VARCHAR"/>
+        <result column="application_id" property="applicationId" jdbcType="VARCHAR"/>
+        <result column="apply_amount" property="applyAmount" jdbcType="DECIMAL"/>
+        <result column="apply_time" property="applyTime" jdbcType="TIMESTAMP"/>
+        <result column="invoice_amount" property="invoiceAmount" jdbcType="DECIMAL"/>
+        <result column="invoice_time" property="invoiceTime" jdbcType="TIMESTAMP"/>
+        <result column="invoice_type" property="invoiceType" jdbcType="VARCHAR"/>
+        <result column="invoice_title" property="invoiceTitle" jdbcType="VARCHAR"/>
+        <result column="taxpayer_id" property="taxpayerId" jdbcType="VARCHAR"/>
+        <result column="bank_name" property="bankName" jdbcType="VARCHAR"/>
+        <result column="bank_account" property="bankAccount" jdbcType="VARCHAR"/>
+        <result column="register_address" property="registerAddress" jdbcType="VARCHAR"/>
+        <result column="register_phone" property="registerPhone" jdbcType="VARCHAR"/>
+        <result column="buyer_name" property="buyerName" jdbcType="VARCHAR"/>
+        <result column="buyer_taxpayer_id" property="buyerTaxpayerId" jdbcType="VARCHAR"/>
+        <result column="buyer_address_phone" property="buyerAddressPhone" jdbcType="VARCHAR"/>
+        <result column="buyer_bank_account" property="buyerBankAccount" jdbcType="VARCHAR"/>
+        <result column="invoice_content" property="invoiceContent" jdbcType="VARCHAR"/>
+        <result column="status" property="status" jdbcType="VARCHAR"/>
+        <result column="void_reason" property="voidReason" jdbcType="VARCHAR"/>
+        <result column="void_time" property="voidTime" jdbcType="TIMESTAMP"/>
+        <result column="invoice_file_url" property="invoiceFileUrl" jdbcType="VARCHAR"/>
+        <result column="invoice_file_name" property="invoiceFileName" jdbcType="VARCHAR"/>
+        <result column="invoice_file_size" property="invoiceFileSize" jdbcType="BIGINT"/>
+        <result column="need_shipping" property="needShipping" jdbcType="BOOLEAN"/>
+        <result column="shipping_address" property="shippingAddress" jdbcType="VARCHAR"/>
+        <result column="recipient_name" property="recipientName" jdbcType="VARCHAR"/>
+        <result column="recipient_phone" property="recipientPhone" jdbcType="VARCHAR"/>
+        <result column="shipping_status" property="shippingStatus" jdbcType="VARCHAR"/>
+        <result column="express_company" property="expressCompany" jdbcType="VARCHAR"/>
+        <result column="tracking_no" property="trackingNo" jdbcType="VARCHAR"/>
+        <result column="receive_time" property="receiveTime" jdbcType="TIMESTAMP"/>
+        <result column="apply_remark" property="applyRemark" jdbcType="VARCHAR"/>
+        <result column="invoice_remark" property="invoiceRemark" jdbcType="VARCHAR"/>
+        <result column="created_by" property="createdBy" jdbcType="VARCHAR"/>
+        <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+        <result column="updated_by" property="updatedBy" jdbcType="VARCHAR"/>
+        <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP"/>
+        <result column="version" property="version" jdbcType="INTEGER"/>
+        <result column="deleted" property="deleted" jdbcType="BOOLEAN"/>
+    </resultMap>
+
+    <!-- 根据发票号码查询 -->
+    <select id="selectByInvoiceNo" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT * FROM t_invoice
+        WHERE invoice_no = #{invoiceNo}
+          AND deleted = FALSE
+    </select>
+
+    <!-- 根据申请单ID查询 -->
+    <select id="selectByApplicationId" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT * FROM t_invoice
+        WHERE application_id = #{applicationId}
+          AND deleted = FALSE
+        ORDER BY apply_time DESC
+        LIMIT 1
+    </select>
+
+    <!-- 获取企业发票统计 -->
+    <select id="selectEnterpriseInvoiceStats" resultType="java.util.Map">
+        SELECT 
+            COUNT(*) as totalCount,
+            SUM(apply_amount) as totalApplyAmount,
+            SUM(invoice_amount) as totalInvoiceAmount
+        FROM t_invoice
+        WHERE enterprise_id = #{enterpriseId}
+          AND deleted = FALSE
+        <if test="startTime != null and startTime != ''">
+            AND created_at >= #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND created_at &lt;= #{endTime}
+        </if>
+    </select>
+
+    <!-- 按发票状态统计 -->
+    <select id="selectInvoiceStatusStats" resultType="java.util.Map">
+        SELECT 
+            status,
+            COUNT(*) as count,
+            SUM(apply_amount) as applyAmount,
+            SUM(invoice_amount) as invoiceAmount
+        FROM t_invoice
+        WHERE enterprise_id = #{enterpriseId}
+          AND deleted = FALSE
+        <if test="startTime != null and startTime != ''">
+            AND created_at >= #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND created_at &lt;= #{endTime}
+        </if>
+        GROUP BY status
+        ORDER BY status
+    </select>
+
+    <!-- 分页查询发票列表 -->
+    <select id="selectInvoicePage" resultMap="BaseResultMap">
+        SELECT i.*, e.name as enterprise_name
+        FROM t_invoice i
+        LEFT JOIN enterprise e ON i.enterprise_id = e.id
+        WHERE i.deleted = FALSE
+        <if test="query.enterpriseId != null and query.enterpriseId != ''">
+            AND i.enterprise_id = #{query.enterpriseId}
+        </if>
+        <if test="query.enterpriseName != null and query.enterpriseName != ''">
+            AND e.name LIKE CONCAT('%', #{query.enterpriseName}, '%')
+        </if>
+        <if test="query.invoiceNo != null and query.invoiceNo != ''">
+            AND i.invoice_no LIKE CONCAT('%', #{query.invoiceNo}, '%')
+        </if>
+        <if test="query.status != null">
+            AND i.status = #{query.status}
+        </if>
+        <if test="query.invoiceType != null">
+            AND i.invoice_type = #{query.invoiceType}
+        </if>
+        <if test="query.shippingStatus != null">
+            AND i.shipping_status = #{query.shippingStatus}
+        </if>
+        <if test="query.minInvoiceAmount != null">
+            AND i.invoice_amount >= #{query.minInvoiceAmount}
+        </if>
+        <if test="query.maxInvoiceAmount != null">
+            AND i.invoice_amount &lt;= #{query.maxInvoiceAmount}
+        </if>
+        <if test="query.minApplyAmount != null">
+            AND i.apply_amount >= #{query.minApplyAmount}
+        </if>
+        <if test="query.maxApplyAmount != null">
+            AND i.apply_amount &lt;= #{query.maxApplyAmount}
+        </if>
+        <if test="query.applyTimeStart != null">
+            AND i.apply_time >= #{query.applyTimeStart}
+        </if>
+        <if test="query.applyTimeEnd != null">
+            AND i.apply_time &lt;= #{query.applyTimeEnd}
+        </if>
+        <if test="query.invoiceTimeStart != null">
+            AND i.invoice_time >= #{query.invoiceTimeStart}
+        </if>
+        <if test="query.invoiceTimeEnd != null">
+            AND i.invoice_time &lt;= #{query.invoiceTimeEnd}
+        </if>
+        <choose>
+            <when test="query.sortField == 'applyAmount' and query.sortOrder == 'asc'">
+                ORDER BY i.apply_amount ASC
+            </when>
+            <when test="query.sortField == 'applyAmount' and query.sortOrder == 'desc'">
+                ORDER BY i.apply_amount DESC
+            </when>
+            <when test="query.sortField == 'applyTime' and query.sortOrder == 'asc'">
+                ORDER BY i.apply_time ASC
+            </when>
+            <when test="query.sortField == 'applyTime' and query.sortOrder == 'desc'">
+                ORDER BY i.apply_time DESC
+            </when>
+            <otherwise>
+                ORDER BY i.apply_time DESC
+            </otherwise>
+        </choose>
+    </select>
+
+</mapper>

@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.anzo.insurance.modules.finance.repository.TransactionRecordMapper">
+
+    <!-- 基础结果映射 -->
+    <resultMap id="BaseResultMap" type="com.anzo.insurance.modules.finance.entity.TransactionRecord">
+        <id column="id" property="id" jdbcType="VARCHAR"/>
+        <result column="transaction_no" property="transactionNo" jdbcType="VARCHAR"/>
+        <result column="enterprise_id" property="enterpriseId" jdbcType="VARCHAR"/>
+        <result column="transaction_type" property="transactionType" jdbcType="VARCHAR"/>
+        <result column="amount" property="amount" jdbcType="DECIMAL"/>
+        <result column="currency" property="currency" jdbcType="VARCHAR"/>
+        <result column="balance_before" property="balanceBefore" jdbcType="DECIMAL"/>
+        <result column="balance_after" property="balanceAfter" jdbcType="DECIMAL"/>
+        <result column="frozen_before" property="frozenBefore" jdbcType="DECIMAL"/>
+        <result column="frozen_after" property="frozenAfter" jdbcType="DECIMAL"/>
+        <result column="related_business_id" property="relatedBusinessId" jdbcType="VARCHAR"/>
+        <result column="related_business_type" property="relatedBusinessType" jdbcType="VARCHAR"/>
+        <result column="related_business_desc" property="relatedBusinessDesc" jdbcType="VARCHAR"/>
+        <result column="status" property="status" jdbcType="VARCHAR"/>
+        <result column="transaction_time" property="transactionTime" jdbcType="TIMESTAMP"/>
+        <result column="completed_time" property="completedTime" jdbcType="TIMESTAMP"/>
+        <result column="payment_method" property="paymentMethod" jdbcType="VARCHAR"/>
+        <result column="payment_no" property="paymentNo" jdbcType="VARCHAR"/>
+        <result column="remark" property="remark" jdbcType="VARCHAR"/>
+        <result column="operator_user_id" property="operatorUserId" jdbcType="VARCHAR"/>
+        <result column="operator_user_name" property="operatorUserName" jdbcType="VARCHAR"/>
+        <result column="is_manual" property="isManual" jdbcType="BOOLEAN"/>
+        <result column="audit_status" property="auditStatus" jdbcType="VARCHAR"/>
+        <result column="audit_opinion" property="auditOpinion" jdbcType="VARCHAR"/>
+        <result column="audit_time" property="auditTime" jdbcType="TIMESTAMP"/>
+        <result column="auditor_user_id" property="auditorUserId" jdbcType="VARCHAR"/>
+        <result column="auditor_user_name" property="auditorUserName" jdbcType="VARCHAR"/>
+        <result column="created_by" property="createdBy" jdbcType="VARCHAR"/>
+        <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+        <result column="updated_by" property="updatedBy" jdbcType="VARCHAR"/>
+        <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP"/>
+        <result column="version" property="version" jdbcType="INTEGER"/>
+        <result column="deleted" property="deleted" jdbcType="BOOLEAN"/>
+    </resultMap>
+
+    <!-- 根据业务ID查询交易记录 -->
+    <select id="selectByRelatedBusinessId" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT * FROM t_transaction_record
+        WHERE related_business_id = #{businessId}
+          AND deleted = FALSE
+        ORDER BY transaction_time DESC
+        LIMIT 1
+    </select>
+
+    <!-- 分页查询交易记录 -->
+    <select id="selectTransactionPage" resultMap="BaseResultMap">
+        SELECT t.*, e.name as enterprise_name
+        FROM t_transaction_record t
+        LEFT JOIN enterprise e ON t.enterprise_id = e.id
+        WHERE t.deleted = FALSE
+        <if test="query.enterpriseId != null and query.enterpriseId != ''">
+            AND t.enterprise_id = #{query.enterpriseId}
+        </if>
+        <if test="query.transactionType != null and query.transactionType != ''">
+            AND t.transaction_type = #{query.transactionType}
+        </if>
+        <if test="query.businessType != null">
+            AND t.related_business_type = #{query.businessType}
+        </if>
+        <if test="query.businessId != null and query.businessId != ''">
+            AND t.related_business_id = #{query.businessId}
+        </if>
+        <if test="query.status != null">
+            AND t.status = #{query.status}
+        </if>
+        <if test="query.paymentMethod != null and query.paymentMethod != ''">
+            AND t.payment_method = #{query.paymentMethod}
+        </if>
+        <if test="query.transactionNo != null and query.transactionNo != ''">
+            AND t.transaction_no LIKE CONCAT('%', #{query.transactionNo}, '%')
+        </if>
+        <if test="query.paymentNo != null and query.paymentNo != ''">
+            AND t.payment_no LIKE CONCAT('%', #{query.paymentNo}, '%')
+        </if>
+        <if test="query.minAmount != null">
+            AND t.amount >= #{query.minAmount}
+        </if>
+        <if test="query.maxAmount != null">
+            AND t.amount &lt;= #{query.maxAmount}
+        </if>
+        <if test="query.operatorUserId != null and query.operatorUserId != ''">
+            AND t.operator_user_id = #{query.operatorUserId}
+        </if>
+        <if test="query.startTime != null and query.startTime != ''">
+            AND t.transaction_time >= #{query.startTime}
+        </if>
+        <if test="query.endTime != null and query.endTime != ''">
+            AND t.transaction_time &lt;= #{query.endTime}
+        </if>
+        <choose>
+            <when test="query.sortField == 'amount' and query.sortOrder == 'asc'">
+                ORDER BY t.amount ASC
+            </when>
+            <when test="query.sortField == 'amount' and query.sortOrder == 'desc'">
+                ORDER BY t.amount DESC
+            </when>
+            <otherwise>
+                ORDER BY t.transaction_time DESC
+            </otherwise>
+        </choose>
+    </select>
+
+    <!-- 获取企业交易统计 -->
+    <select id="selectEnterpriseTransactionStats" resultType="java.util.Map">
+        SELECT 
+            COUNT(*) as totalCount,
+            SUM(amount) as totalAmount
+        FROM t_transaction_record
+        WHERE enterprise_id = #{enterpriseId}
+          AND status = 'SUCCESS'
+          AND deleted = FALSE
+        <if test="startTime != null and startTime != ''">
+            AND transaction_time >= #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND transaction_time &lt;= #{endTime}
+        </if>
+    </select>
+
+    <!-- 按交易类型统计 -->
+    <select id="selectTransactionTypeStats" resultType="java.util.Map">
+        SELECT 
+            transaction_type,
+            COUNT(*) as count,
+            SUM(amount) as amount
+        FROM t_transaction_record
+        WHERE enterprise_id = #{enterpriseId}
+          AND status = 'SUCCESS'
+          AND deleted = FALSE
+        <if test="startTime != null and startTime != ''">
+            AND transaction_time >= #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND transaction_time &lt;= #{endTime}
+        </if>
+        GROUP BY transaction_type
+        ORDER BY transaction_type
+    </select>
+
+</mapper>

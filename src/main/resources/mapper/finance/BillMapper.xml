@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.anzo.insurance.modules.finance.repository.BillMapper">
+
+    <!-- 基础结果映射 -->
+    <resultMap id="BaseResultMap" type="com.anzo.insurance.modules.finance.entity.Bill">
+        <id column="id" property="id" jdbcType="VARCHAR"/>
+        <result column="bill_no" property="billNo" jdbcType="VARCHAR"/>
+        <result column="enterprise_id" property="enterpriseId" jdbcType="VARCHAR"/>
+        <result column="enterprise_name" property="enterpriseName" jdbcType="VARCHAR"/>
+        <result column="billing_period" property="billingPeriod" jdbcType="VARCHAR"/>
+        <result column="billing_month" property="billingMonth" jdbcType="DATE"/>
+        <result column="policy_count" property="policyCount" jdbcType="INTEGER"/>
+        <result column="total_insured_amount" property="totalInsuredAmount" jdbcType="DECIMAL"/>
+        <result column="total_premium_amount" property="totalPremiumAmount" jdbcType="DECIMAL"/>
+        <result column="bill_amount" property="billAmount" jdbcType="DECIMAL"/>
+        <result column="paid_amount" property="paidAmount" jdbcType="DECIMAL"/>
+        <result column="status" property="status" jdbcType="VARCHAR"/>
+        <result column="due_date" property="dueDate" jdbcType="DATE"/>
+        <result column="payment_date" property="paymentDate" jdbcType="DATE"/>
+        <result column="payment_method" property="paymentMethod" jdbcType="VARCHAR"/>
+        <result column="payment_no" property="paymentNo" jdbcType="VARCHAR"/>
+        <result column="reconciliation_status" property="reconciliationStatus" jdbcType="VARCHAR"/>
+        <result column="reconciliation_time" property="reconciliationTime" jdbcType="TIMESTAMP"/>
+        <result column="reconciliation_user_id" property="reconciliationUserId" jdbcType="VARCHAR"/>
+        <result column="reconciliation_user_name" property="reconciliationUserName" jdbcType="VARCHAR"/>
+        <result column="remark" property="remark" jdbcType="VARCHAR"/>
+        <result column="bill_file_url" property="billFileUrl" jdbcType="VARCHAR"/>
+        <result column="bill_file_name" property="billFileName" jdbcType="VARCHAR"/>
+        <result column="bill_file_size" property="billFileSize" jdbcType="BIGINT"/>
+        <result column="created_by" property="createdBy" jdbcType="VARCHAR"/>
+        <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+        <result column="updated_by" property="updatedBy" jdbcType="VARCHAR"/>
+        <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP"/>
+        <result column="version" property="version" jdbcType="INTEGER"/>
+        <result column="deleted" property="deleted" jdbcType="BOOLEAN"/>
+    </resultMap>
+
+    <!-- 根据账单编号查询 -->
+    <select id="selectByBillNo" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT * FROM t_bill
+        WHERE bill_no = #{billNo}
+          AND deleted = FALSE
+    </select>
+
+    <!-- 查询企业账单统计 -->
+    <select id="selectEnterpriseBillStats" resultType="java.util.Map">
+        SELECT 
+            COUNT(*) as totalCount,
+            SUM(bill_amount) as totalBillAmount,
+            SUM(paid_amount) as totalPaidAmount
+        FROM t_bill
+        WHERE enterprise_id = #{enterpriseId}
+          AND deleted = FALSE
+        <if test="billingPeriod != null and billingPeriod != ''">
+            AND billing_period = #{billingPeriod}
+        </if>
+    </select>
+
+    <!-- 按账单状态统计 -->
+    <select id="selectBillStatusStats" resultType="java.util.Map">
+        SELECT 
+            status,
+            COUNT(*) as count,
+            SUM(bill_amount) as billAmount,
+            SUM(paid_amount) as paidAmount
+        FROM t_bill
+        WHERE enterprise_id = #{enterpriseId}
+          AND deleted = FALSE
+        <if test="billingPeriod != null and billingPeriod != ''">
+            AND billing_period = #{billingPeriod}
+        </if>
+        GROUP BY status
+        ORDER BY status
+    </select>
+
+    <!-- 分页查询账单列表 -->
+    <select id="selectBillPage" resultMap="BaseResultMap">
+        SELECT b.*, e.name as enterprise_name
+        FROM t_bill b
+        LEFT JOIN enterprise e ON b.enterprise_id = e.id
+        WHERE b.deleted = FALSE
+        <if test="query.enterpriseId != null and query.enterpriseId != ''">
+            AND b.enterprise_id = #{query.enterpriseId}
+        </if>
+        <if test="query.enterpriseName != null and query.enterpriseName != ''">
+            AND e.name LIKE CONCAT('%', #{query.enterpriseName}, '%')
+        </if>
+        <if test="query.billNo != null and query.billNo != ''">
+            AND b.bill_no LIKE CONCAT('%', #{query.billNo}, '%')
+        </if>
+        <if test="query.status != null">
+            AND b.status = #{query.status}
+        </if>
+        <if test="query.reconciliationStatus != null">
+            AND b.reconciliation_status = #{query.reconciliationStatus}
+        </if>
+        <if test="query.billingPeriod != null and query.billingPeriod != ''">
+            AND b.billing_period = #{query.billingPeriod}
+        </if>
+        <if test="query.minBillAmount != null">
+            AND b.bill_amount >= #{query.minBillAmount}
+        </if>
+        <if test="query.maxBillAmount != null">
+            AND b.bill_amount &lt;= #{query.maxBillAmount}
+        </if>
+        <if test="query.minPaidAmount != null">
+            AND b.paid_amount >= #{query.minPaidAmount}
+        </if>
+        <if test="query.maxPaidAmount != null">
+            AND b.paid_amount &lt;= #{query.maxPaidAmount}
+        </if>
+        <if test="query.dueDateStart != null">
+            AND b.due_date >= #{query.dueDateStart}
+        </if>
+        <if test="query.dueDateEnd != null">
+            AND b.due_date &lt;= #{query.dueDateEnd}
+        </if>
+        <if test="query.paymentDateStart != null">
+            AND b.payment_date >= #{query.paymentDateStart}
+        </if>
+        <if test="query.paymentDateEnd != null">
+            AND b.payment_date &lt;= #{query.paymentDateEnd}
+        </if>
+        <choose>
+            <when test="query.sortField == 'billAmount' and query.sortOrder == 'asc'">
+                ORDER BY b.bill_amount ASC
+            </when>
+            <when test="query.sortField == 'billAmount' and query.sortOrder == 'desc'">
+                ORDER BY b.bill_amount DESC
+            </when>
+            <when test="query.sortField == 'dueDate' and query.sortOrder == 'asc'">
+                ORDER BY b.due_date ASC
+            </when>
+            <when test="query.sortField == 'dueDate' and query.sortOrder == 'desc'">
+                ORDER BY b.due_date DESC
+            </when>
+            <otherwise>
+                ORDER BY b.billing_month DESC
+            </otherwise>
+        </choose>
+    </select>
+
+</mapper>

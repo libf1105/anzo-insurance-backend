@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.anzo.insurance.modules.insurance.repository.InsuranceApplicationMapper">
+
+    <resultMap id="InsuranceApplicationResultMap" type="com.anzo.insurance.modules.insurance.entity.InsuranceApplication">
+        <id property="id" column="id" />
+        <result property="enterpriseId" column="enterprise_id" />
+        <result property="applicationNo" column="application_no" />
+        <result property="tradeDirection" column="trade_direction" />
+        <result property="transportType" column="transport_type" />
+        <result property="insuranceProduct" column="insurance_product" />
+        <result property="insurerId" column="insurer_id" />
+        <result property="insurerName" column="insurer_name" />
+        <result property="applicantId" column="applicant_id" />
+        <result property="insuredId" column="insured_id" />
+        <result property="departureCountry" column="departure_country" />
+        <result property="departureCity" column="departure_city" />
+        <result property="arrivalCountry" column="arrival_country" />
+        <result property="arrivalCity" column="arrival_city" />
+        <result property="departureDate" column="departure_date" />
+        <result property="arrivalDate" column="arrival_date" />
+        <result property="transportDetails" column="transport_details" typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler" />
+        <result property="cargoName" column="cargo_name" />
+        <result property="cargoCategory" column="cargo_category" />
+        <result property="packingType" column="packing_type" />
+        <result property="packingQuantity" column="packing_quantity" />
+        <result property="shippingMark" column="shipping_mark" />
+        <result property="currency" column="currency" />
+        <result property="insuranceAmount" column="insurance_amount" />
+        <result property="invoiceAmount" column="invoice_amount" />
+        <result property="additionRatio" column="addition_ratio" />
+        <result property="deductible" column="deductible" />
+        <result property="specialTerms" column="special_terms" />
+        <result property="premium" column="premium" />
+        <result property="premiumCurrency" column="premium_currency" />
+        <result property="rate" column="rate" />
+        <result property="status" column="status" />
+        <result property="rejectReason" column="reject_reason" />
+        <result property="createdBy" column="created_by" />
+        <result property="createdAt" column="created_at" />
+        <result property="updatedBy" column="updated_by" />
+        <result property="updatedAt" column="updated_at" />
+        <result property="submittedAt" column="submitted_at" />
+        <result property="underwritingAt" column="underwriting_at" />
+        <result property="effectiveAt" column="effective_at" />
+        <result property="expiredAt" column="expired_at" />
+        <result property="version" column="version" />
+        <result property="deleted" column="deleted" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, enterprise_id, application_no,
+        trade_direction, transport_type, insurance_product, insurer_id, insurer_name,
+        applicant_id, insured_id,
+        departure_country, departure_city, arrival_country, arrival_city,
+        departure_date, arrival_date, transport_details,
+        cargo_name, cargo_category, packing_type, packing_quantity, shipping_mark,
+        currency, insurance_amount, invoice_amount, addition_ratio, deductible, special_terms,
+        premium, premium_currency, rate,
+        status, reject_reason,
+        created_by, created_at, updated_by, updated_at,
+        submitted_at, underwriting_at, effective_at, expired_at,
+        version, deleted
+    </sql>
+
+</mapper>

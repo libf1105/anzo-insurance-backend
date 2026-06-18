@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.anzo.insurance.modules.claim.repository.ClaimMapper">
+
+    <resultMap id="ClaimResultMap" type="com.anzo.insurance.modules.claim.entity.Claim">
+        <id property="id" column="id" />
+        <result property="claimNo" column="claim_no" />
+        <result property="enterpriseId" column="enterprise_id" />
+        <result property="policyId" column="policy_id" />
+        <result property="policyNo" column="policy_no" />
+        <result property="insuredName" column="insured_name" />
+        <result property="insuredContactName" column="insured_contact_name" />
+        <result property="insuredContactPhone" column="insured_contact_phone" />
+        <result property="reportDate" column="report_date" />
+        <result property="accidentDate" column="accident_date" />
+        <result property="accidentLocation" column="accident_location" />
+        <result property="accidentDescription" column="accident_description" />
+        <result property="accidentType" column="accident_type" />
+        <result property="accidentTypeOther" column="accident_type_other" />
+        <result property="claimAmount" column="claim_amount" />
+        <result property="currency" column="currency" />
+        <result property="lossDescription" column="loss_description" />
+        <result property="lossReason" column="loss_reason" />
+        <result property="materialStatus" column="material_status" />
+        <result property="missingMaterials" column="missing_materials" />
+        <result property="status" column="status" />
+        <result property="handlerUserId" column="handler_user_id" />
+        <result property="handlerUserName" column="handler_user_name" />
+        <result property="handlerAssignedAt" column="handler_assigned_at" />
+        <result property="reviewUserId" column="review_user_id" />
+        <result property="reviewUserName" column="review_user_name" />
+        <result property="reviewAt" column="review_at" />
+        <result property="reviewRemark" column="review_remark" />
+        <result property="surveyUserId" column="survey_user_id" />
+        <result property="surveyUserName" column="survey_user_name" />
+        <result property="surveyAt" column="survey_at" />
+        <result property="surveyReport" column="survey_report" />
+        <result property="paymentUserId" column="payment_user_id" />
+        <result property="paymentUserName" column="payment_user_name" />
+        <result property="paymentAt" column="payment_at" />
+        <result property="paymentAmount" column="payment_amount" />
+        <result property="paymentCurrency" column="payment_currency" />
+        <result property="rejectReason" column="reject_reason" />
+        <result property="withdrawReason" column="withdraw_reason" />
+        <result property="statusChangedAt" column="status_changed_at" />
+        <result property="createdBy" column="created_by" />
+        <result property="createdAt" column="created_at" />
+        <result property="updatedBy" column="updated_by" />
+        <result property="updatedAt" column="updated_at" />
+        <result property="version" column="version" />
+        <result property="deleted" column="deleted" />
+    </resultMap>
+
+    <resultMap id="ClaimStatisticsResultMap" type="com.anzo.insurance.modules.claim.repository.ClaimMapper$ClaimStatistics">
+        <result property="processingCount" column="processing_count" />
+        <result property="paidCount" column="paid_count" />
+        <result property="totalPaymentAmount" column="total_payment_amount" />
+        <result property="paymentRate" column="payment_rate" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, claim_no, enterprise_id, policy_id, policy_no,
+        insured_name, insured_contact_name, insured_contact_phone,
+        report_date, accident_date, accident_location, accident_description,
+        accident_type, accident_type_other, claim_amount, currency,
+        loss_description, loss_reason, material_status, missing_materials,
+        status, handler_user_id, handler_user_name, handler_assigned_at,
+        review_user_id, review_user_name, review_at, review_remark,
+        survey_user_id, survey_user_name, survey_at, survey_report,
+        payment_user_id, payment_user_name, payment_at, payment_amount, payment_currency,
+        reject_reason, withdraw_reason, status_changed_at,
+        created_by, created_at, updated_by, updated_at, version, deleted
+    </sql>
+
+    <select id="getClaimStatistics" resultMap="ClaimStatisticsResultMap">
+        SELECT
+            COUNT(CASE WHEN status IN ('REPORTED', 'MATERIAL_REVIEWING', 'MATERIAL_INCOMPLETE', 'SURVEYING', 'NEGOTIATING') THEN 1 END) as processing_count,
+            COUNT(CASE WHEN status = 'PAID' THEN 1 END) as paid_count,
+            COALESCE(SUM(CASE WHEN status = 'PAID' THEN payment_amount ELSE 0 END), 0) as total_payment_amount,
+            COALESCE(SUM(CASE WHEN status = 'PAID' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 0) as payment_rate
+        FROM t_claim
+        WHERE enterprise_id = #{enterpriseId} AND deleted = false
+    </select>
+
+</mapper>

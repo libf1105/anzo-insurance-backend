@@ -1,0 +1,62 @@
+package com.anzo.insurance.modules.finance.service;
+
+import com.anzo.insurance.modules.finance.dto.WalletDTO;
+import com.anzo.insurance.modules.finance.dto.WalletQueryDTO;
+import com.anzo.insurance.modules.finance.dto.WalletUpdateDTO;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+
+/**
+ * 钱包服务接口
+ */
+public interface WalletService {
+
+    /**
+     * 获取钱包信息
+     */
+    WalletDTO getWallet(String id);
+
+    /**
+     * 根据企业ID获取钱包信息
+     */
+    WalletDTO getWalletByEnterpriseId(String enterpriseId);
+
+    /**
+     * 分页查询钱包列表
+     */
+    IPage<WalletDTO> queryWalletPage(WalletQueryDTO queryDTO);
+
+    /**
+     * 初始化企业钱包
+     */
+    WalletDTO initWallet(String enterpriseId, String enterpriseName);
+
+    /**
+     * 更新钱包余额
+     */
+    WalletDTO updateWalletBalance(WalletUpdateDTO updateDTO);
+
+    /**
+     * 冻结金额
+     */
+    WalletDTO freezeAmount(String walletId, java.math.BigDecimal amount, String businessId, String businessDesc, String remark);
+
+    /**
+     * 解冻金额
+     */
+    WalletDTO unfreezeAmount(String walletId, java.math.BigDecimal amount, String businessId, String businessDesc, String remark);
+
+    /**
+     * 充值
+     */
+    WalletDTO recharge(String walletId, java.math.BigDecimal amount, Integer paymentMethod, String paymentNo, String remark);
+
+    /**
+     * 扣款
+     */
+    WalletDTO deduct(String walletId, java.math.BigDecimal amount, String businessId, String businessDesc, String remark);
+
+    /**
+     * 退款
+     */
+    WalletDTO refund(String walletId, java.math.BigDecimal amount, String businessId, String businessDesc, String remark);
+}

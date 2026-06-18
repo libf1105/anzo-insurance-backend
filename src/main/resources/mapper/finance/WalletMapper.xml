@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.anzo.insurance.modules.finance.repository.WalletMapper">
+
+    <!-- 基础结果映射 -->
+    <resultMap id="BaseResultMap" type="com.anzo.insurance.modules.finance.entity.Wallet">
+        <id column="id" property="id" jdbcType="VARCHAR"/>
+        <result column="enterprise_id" property="enterpriseId" jdbcType="VARCHAR"/>
+        <result column="available_balance" property="availableBalance" jdbcType="DECIMAL"/>
+        <result column="frozen_balance" property="frozenBalance" jdbcType="DECIMAL"/>
+        <result column="total_recharge_amount" property="totalRechargeAmount" jdbcType="DECIMAL"/>
+        <result column="total_consumption_amount" property="totalConsumptionAmount" jdbcType="DECIMAL"/>
+        <result column="total_refund_amount" property="totalRefundAmount" jdbcType="DECIMAL"/>
+        <result column="currency" property="currency" jdbcType="VARCHAR"/>
+        <result column="min_balance_alert" property="minBalanceAlert" jdbcType="DECIMAL"/>
+        <result column="balance_alert_enabled" property="balanceAlertEnabled" jdbcType="BOOLEAN"/>
+        <result column="status" property="status" jdbcType="VARCHAR"/>
+        <result column="created_by" property="createdBy" jdbcType="VARCHAR"/>
+        <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+        <result column="updated_by" property="updatedBy" jdbcType="VARCHAR"/>
+        <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP"/>
+        <result column="version" property="version" jdbcType="INTEGER"/>
+        <result column="deleted" property="deleted" jdbcType="BOOLEAN"/>
+    </resultMap>
+
+    <!-- 查询企业钱包 -->
+    <select id="selectByEnterpriseId" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT * FROM t_wallet
+        WHERE enterprise_id = #{enterpriseId}
+          AND deleted = FALSE
+        LIMIT 1
+    </select>
+
+    <!-- 更新钱包余额 -->
+    <update id="updateBalance">
+        UPDATE t_wallet
+        SET available_balance = available_balance + #{amount}
+        WHERE id = #{id}
+          AND deleted = FALSE
+          AND available_balance + #{amount} >= 0
+    </update>
+
+    <!-- 冻结金额 -->
+    <update id="freezeBalance">
+        UPDATE t_wallet
+        SET 
+            available_balance = available_balance - #{amount},
+            frozen_balance = frozen_balance + #{amount}
+        WHERE id = #{id}
+          AND deleted = FALSE
+          AND available_balance >= #{amount}
+    </update>
+
+    <!-- 解冻金额 -->
+    <update id="unfreezeBalance">
+        UPDATE t_wallet
+        SET 
+            available_balance = available_balance + #{amount},
+            frozen_balance = frozen_balance - #{amount}
+        WHERE id = #{id}
+          AND deleted = FALSE
+          AND frozen_balance >= #{amount}
+    </update>
+
+    <!-- 更新充值统计 -->
+    <update id="updateRechargeAmount">
+        UPDATE t_wallet
+        SET total_recharge_amount = total_recharge_amount + #{amount}
+        WHERE id = #{id}
+          AND deleted = FALSE
+    </update>
+
+    <!-- 更新消费统计 -->
+    <update id="updateConsumptionAmount">
+        UPDATE t_wallet
+        SET total_consumption_amount = total_consumption_amount + #{amount}
+        WHERE id = #{id}
+          AND deleted = FALSE
+    </update>
+
+    <!-- 更新退款统计 -->
+    <update id="updateRefundAmount">
+        UPDATE t_wallet
+        SET total_refund_amount = total_refund_amount + #{amount}
+        WHERE id = #{id}
+          AND deleted = FALSE
+    </update>
+
+</mapper>
