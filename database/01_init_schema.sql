@@ -112,13 +112,13 @@ CREATE TABLE IF NOT EXISTS `insurance_application` (
   `id` VARCHAR(36) NOT NULL,
   `enterprise_id` VARCHAR(36) NOT NULL,
   `application_no` VARCHAR(50) NOT NULL COMMENT '投保申请单号',
-  `trade_direction` ENUM('IMPORT', 'EXPORT', 'DOMESTIC') NOT NULL,
-  `transport_type` ENUM('SEA', 'AIR', 'RAIL', 'ROAD', 'MULTIMODAL') NOT NULL,
-  `insurance_product` ENUM('CARGO', 'LIABILITY') NOT NULL DEFAULT 'CARGO',
+  `trade_direction` ENUM('IMPORT', 'EXPORT', 'DOMESTIC') DEFAULT NULL,
+  `transport_type` ENUM('SEA', 'AIR', 'RAIL', 'ROAD', 'MULTIMODAL') DEFAULT NULL,
+  `insurance_product` ENUM('CARGO', 'LIABILITY') DEFAULT NULL,
   `insurer_id` VARCHAR(36) DEFAULT NULL,
   `insurer_name` VARCHAR(100) DEFAULT NULL,
-  `applicant_id` VARCHAR(36) NOT NULL,
-  `insured_id` VARCHAR(36) NOT NULL,
+  `applicant_id` VARCHAR(36) DEFAULT NULL,
+  `insured_id` VARCHAR(36) DEFAULT NULL,
   `departure_country` VARCHAR(50) DEFAULT NULL,
   `departure_city` VARCHAR(50) DEFAULT NULL,
   `arrival_country` VARCHAR(50) DEFAULT NULL,
@@ -159,25 +159,7 @@ CREATE TABLE IF NOT EXISTS `insurance_application` (
   CONSTRAINT `fk_insurance_application_enterprise` FOREIGN KEY (`enterprise_id`) REFERENCES `enterprise` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_insurance_application_applicant` FOREIGN KEY (`applicant_id`) REFERENCES `customer` (`id`),
   CONSTRAINT `fk_insurance_application_insured` FOREIGN KEY (`insured_id`) REFERENCES `customer` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='投保申请表';
-
-CREATE TABLE IF NOT EXISTS `application_draft` (
-  `id` VARCHAR(36) NOT NULL,
-  `enterprise_id` VARCHAR(36) NOT NULL,
-  `user_id` VARCHAR(36) NOT NULL,
-  `current_step` TINYINT NOT NULL DEFAULT 1,
-  `step1_data` JSON DEFAULT NULL,
-  `step2_data` JSON DEFAULT NULL,
-  `step3_data` JSON DEFAULT NULL,
-  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `expired_at` DATETIME DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `idx_application_draft_enterprise_id` (`enterprise_id`),
-  KEY `idx_application_draft_user_id` (`user_id`),
-  CONSTRAINT `fk_application_draft_enterprise` FOREIGN KEY (`enterprise_id`) REFERENCES `enterprise` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_application_draft_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='投保草稿表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='投保申请表，草稿和正式申请共用';
 
 CREATE TABLE IF NOT EXISTS `application_template` (
   `id` VARCHAR(36) NOT NULL,

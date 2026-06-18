@@ -39,6 +39,9 @@ public class ApplicationStep1DTO {
     @Schema(description = "被保险人是否同投保人", defaultValue = "false")
     private Boolean insuredSameAsApplicant = false;
     
+    @Schema(description = "投保申请ID，续写草稿时传入")
+    private String applicationId;
+    
     @Schema(description = "草稿ID，续写时传入")
     private String draftId;
     

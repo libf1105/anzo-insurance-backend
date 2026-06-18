@@ -63,7 +63,6 @@ ALTER TABLE `enterprise`
 - `customer`
 - `insurance_insurer`
 - `insurance_application`
-- `application_draft`
 - `application_template`
 - `t_policy`
 - `t_claim`
@@ -80,6 +79,7 @@ ALTER TABLE `enterprise`
 补充说明：
 
 - `insurance_insurer` 已纳入初始化脚本，并补充了默认保司数据，和当前前端投保页/保单页使用的保司 ID 保持一致。
+- 投保草稿已收敛到 `insurance_application.status = DRAFT`，初始化脚本不再单独创建 `application_draft` 表。
 - `role`、`risk_rule`、`operation_log` 等表当前不属于后端运行时必需依赖，未纳入主初始化脚本，避免引入与现代码脱节的冗余结构。
 - 当前如果是新环境建库，直接执行 `01_init_schema.sql` 即可完成主业务所需的表、索引、外键与基础种子数据初始化。
 

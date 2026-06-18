@@ -28,7 +28,6 @@
 /Users/libingfeng/Desktop/repository/AnzoTech/anzo-insurance-backend/src/main/java/com/anzo/insurance/modules/finance/dto/BillQueryDTO.java
 /Users/libingfeng/Desktop/repository/AnzoTech/anzo-insurance-backend/src/main/java/com/anzo/insurance/modules/auth/entity/Enterprise.java
 /Users/libingfeng/Desktop/repository/AnzoTech/anzo-insurance-backend/src/main/java/com/anzo/insurance/modules/insurance/dto/InsuranceTemplateDTO.java
-/Users/libingfeng/Desktop/repository/AnzoTech/anzo-insurance-backend/src/main/java/com/anzo/insurance/modules/insurance/repository/ApplicationDraftMapper.java
 /Users/libingfeng/Desktop/repository/AnzoTech/anzo-insurance-backend/src/main/java/com/anzo/insurance/modules/policy/service/PolicyService.java
 /Users/libingfeng/Desktop/repository/AnzoTech/anzo-insurance-backend/src/main/java/com/anzo/insurance/modules/auth/dto/RegisterDTO.java
 /Users/libingfeng/Desktop/repository/AnzoTech/anzo-insurance-backend/src/main/java/com/anzo/insurance/modules/finance/dto/BillPayDTO.java
@@ -139,7 +138,6 @@
 /Users/libingfeng/Desktop/repository/AnzoTech/anzo-insurance-backend/src/main/java/com/anzo/insurance/common/config/MybatisConfig.java
 /Users/libingfeng/Desktop/repository/AnzoTech/anzo-insurance-backend/src/main/java/com/anzo/insurance/modules/file/dto/FileResponseDTO.java
 /Users/libingfeng/Desktop/repository/AnzoTech/anzo-insurance-backend/src/main/java/com/anzo/insurance/modules/finance/dto/InvoiceQueryDTO.java
-/Users/libingfeng/Desktop/repository/AnzoTech/anzo-insurance-backend/src/main/java/com/anzo/insurance/modules/insurance/entity/ApplicationDraft.java
 /Users/libingfeng/Desktop/repository/AnzoTech/anzo-insurance-backend/src/main/java/com/anzo/insurance/modules/file/dto/FileUploadDTO.java
 /Users/libingfeng/Desktop/repository/AnzoTech/anzo-insurance-backend/src/main/java/com/anzo/insurance/modules/enterprise/service/EnterpriseService.java
 /Users/libingfeng/Desktop/repository/AnzoTech/anzo-insurance-backend/src/main/java/com/anzo/insurance/common/entity/BaseEntity.java
