@@ -5,6 +5,8 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.DigestUtil;
+import com.anzo.insurance.common.config.MinioProperties;
+import com.anzo.insurance.common.storage.MinioStorageService;
 import com.anzo.insurance.common.exception.BusinessException;
 import com.anzo.insurance.common.exception.ErrorCode;
 import com.anzo.insurance.modules.auth.entity.Enterprise;
@@ -25,16 +27,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -50,9 +46,9 @@ public class FileManagementServiceImpl implements FileManagementService {
     private final EnterpriseFileRepository fileRepository;
     private final UserRepository userRepository;
     private final EnterpriseRepository enterpriseRepository;
+    private final MinioStorageService minioStorageService;
+    private final MinioProperties minioProperties;
 
-    // 文件存储路径配置
-    private static final String FILE_UPLOAD_DIR = "/var/uploads/enterprise-files/";
     private static final long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
     private static final List<String> ALLOWED_MIME_TYPES = List.of(
             "image/jpeg", "image/png", "image/gif", "image/bmp", "image/webp",
@@ -95,10 +91,14 @@ public class FileManagementServiceImpl implements FileManagementService {
         String originalFilename = uploadDTO.getFile().getOriginalFilename();
         String fileExtension = FileUtil.extName(originalFilename);
         String fileName = IdUtil.fastSimpleUUID() + "." + fileExtension;
-        String filePath = buildFilePath(enterprise.getId(), fileName);
+        String objectKey = buildObjectKey(enterprise.getId(), fileName);
         
-        // 保存文件到磁盘
-        saveFileToDisk(uploadDTO.getFile(), filePath);
+        // 上传文件到 MinIO
+        String fileUrl = minioStorageService.upload(
+                uploadDTO.getFile(),
+                minioProperties.getBucket().getEnterprise(),
+                objectKey
+        );
         
         // 保存文件信息到数据库
         EnterpriseFile file = new EnterpriseFile();
@@ -107,8 +107,8 @@ public class FileManagementServiceImpl implements FileManagementService {
         file.setFileType(uploadDTO.getFileType());
         file.setFileSize(uploadDTO.getFile().getSize());
         file.setMimeType(uploadDTO.getFile().getContentType());
-        file.setFilePath(filePath);
-        file.setFileUrl(buildFileUrl(enterprise.getId(), fileName));
+        file.setFilePath(objectKey);
+        file.setFileUrl(fileUrl);
         file.setMd5(md5);
         file.setEnterpriseId(enterprise.getId());
         file.setUploadUserId(user.getId());
@@ -137,13 +137,13 @@ public class FileManagementServiceImpl implements FileManagementService {
     }
 
     @Override
-    public FileResponseDTO getFileById(String fileId) {
+    public FileResponseDTO getFileById(Long fileId) {
         EnterpriseFile file = getFileEntityById(fileId);
         return convertToResponseDTO(file);
     }
 
     @Override
-    public EnterpriseFile getFileEntityById(String fileId) {
+    public EnterpriseFile getFileEntityById(Long fileId) {
         EnterpriseFile file = fileRepository.selectById(fileId);
         if (file == null || file.getDeleted()) {
             throw new BusinessException(ErrorCode.FILE_NOT_FOUND.getCode(), "文件不存在");
@@ -156,7 +156,7 @@ public class FileManagementServiceImpl implements FileManagementService {
     }
 
     @Override
-    public List<FileResponseDTO> getFilesByEnterpriseId(String enterpriseId) {
+    public List<FileResponseDTO> getFilesByEnterpriseId(Long enterpriseId) {
         checkEnterpriseAccessPermission(enterpriseId);
         
         List<EnterpriseFile> files = fileRepository.findByEnterpriseId(enterpriseId);
@@ -166,7 +166,7 @@ public class FileManagementServiceImpl implements FileManagementService {
     }
 
     @Override
-    public List<FileResponseDTO> getFilesByEnterpriseIdAndType(String enterpriseId, String fileType) {
+    public List<FileResponseDTO> getFilesByEnterpriseIdAndType(Long enterpriseId, String fileType) {
         checkEnterpriseAccessPermission(enterpriseId);
         
         List<EnterpriseFile> files = fileRepository.findByEnterpriseIdAndType(enterpriseId, fileType);
@@ -176,7 +176,7 @@ public class FileManagementServiceImpl implements FileManagementService {
     }
 
     @Override
-    public Page<FileResponseDTO> getFilesPage(Pageable pageable, String enterpriseId, String fileType, String reviewStatus) {
+    public Page<FileResponseDTO> getFilesPage(Pageable pageable, Long enterpriseId, String fileType, String reviewStatus) {
         checkEnterpriseAccessPermission(enterpriseId);
         
         // 构建查询条件
@@ -205,7 +205,7 @@ public class FileManagementServiceImpl implements FileManagementService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void deleteFile(String fileId) {
+    public void deleteFile(Long fileId) {
         EnterpriseFile file = getFileEntityById(fileId);
         
         // 检查删除权限
@@ -219,48 +219,22 @@ public class FileManagementServiceImpl implements FileManagementService {
     }
 
     @Override
-    public InputStream downloadFile(String fileId) {
+    public InputStream downloadFile(Long fileId) {
         EnterpriseFile file = getFileEntityById(fileId);
-        
-        try {
-            File diskFile = new File(file.getFilePath());
-            if (!diskFile.exists()) {
-                throw new BusinessException(ErrorCode.FILE_NOT_FOUND.getCode(), "文件不存在于磁盘");
-            }
-            
-            // 增加下载次数
-            incrementDownloadCount(fileId);
-            
-            return new FileInputStream(diskFile);
-        } catch (IOException e) {
-            log.error("文件下载失败: fileId={}, error={}", fileId, e.getMessage());
-            throw new BusinessException(ErrorCode.FILE_OPERATION_ERROR.getCode(), "文件下载失败");
-        }
+        incrementDownloadCount(fileId);
+        return minioStorageService.getObject(minioProperties.getBucket().getEnterprise(), file.getFilePath());
     }
 
     @Override
-    public byte[] downloadFileBytes(String fileId) {
+    public byte[] downloadFileBytes(Long fileId) {
         EnterpriseFile file = getFileEntityById(fileId);
-        
-        try {
-            Path filePath = Paths.get(file.getFilePath());
-            if (!Files.exists(filePath)) {
-                throw new BusinessException(ErrorCode.FILE_NOT_FOUND.getCode(), "文件不存在于磁盘");
-            }
-            
-            // 增加下载次数
-            incrementDownloadCount(fileId);
-            
-            return Files.readAllBytes(filePath);
-        } catch (IOException e) {
-            log.error("文件下载失败: fileId={}, error={}", fileId, e.getMessage());
-            throw new BusinessException(ErrorCode.FILE_OPERATION_ERROR.getCode(), "文件下载失败");
-        }
+        incrementDownloadCount(fileId);
+        return minioStorageService.downloadBytes(minioProperties.getBucket().getEnterprise(), file.getFilePath());
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void reviewFile(String fileId, String reviewResult, String remark) {
+    public void reviewFile(Long fileId, String reviewResult, String remark) {
         EnterpriseFile file = getFileEntityById(fileId);
         
         // 检查审核权限
@@ -274,7 +248,7 @@ public class FileManagementServiceImpl implements FileManagementService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND.getCode(), "用户不存在"));
         
-        file.setReviewBy(user.getId());
+        file.setReviewBy(String.valueOf(user.getId()));
         file.setReviewAt(LocalDateTime.now().toString());
         file.setReviewRemark(remark);
         
@@ -298,8 +272,8 @@ public class FileManagementServiceImpl implements FileManagementService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void batchReviewFiles(List<String> fileIds, String reviewResult, String remark) {
-        for (String fileId : fileIds) {
+    public void batchReviewFiles(List<Long> fileIds, String reviewResult, String remark) {
+        for (Long fileId : fileIds) {
             try {
                 reviewFile(fileId, reviewResult, remark);
             } catch (Exception e) {
@@ -310,7 +284,7 @@ public class FileManagementServiceImpl implements FileManagementService {
     }
 
     @Override
-    public FileStatistics getFileStatistics(String enterpriseId) {
+    public FileStatistics getFileStatistics(Long enterpriseId) {
         checkEnterpriseAccessPermission(enterpriseId);
         
         // 查询文件统计
@@ -376,20 +350,20 @@ public class FileManagementServiceImpl implements FileManagementService {
     }
 
     @Override
-    public boolean checkFileExists(String md5, String enterpriseId) {
+    public boolean checkFileExists(String md5, Long enterpriseId) {
         EnterpriseFile file = fileRepository.findByMd5(md5, enterpriseId);
         return file != null && file.isActive();
     }
 
     @Override
-    public String getFileUrl(String fileId) {
+    public String getFileUrl(Long fileId) {
         EnterpriseFile file = getFileEntityById(fileId);
         return file.getFileUrl();
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void updateFileDescription(String fileId, String description) {
+    public void updateFileDescription(Long fileId, String description) {
         EnterpriseFile file = getFileEntityById(fileId);
         
         // 检查权限
@@ -402,7 +376,7 @@ public class FileManagementServiceImpl implements FileManagementService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void incrementDownloadCount(String fileId) {
+    public void incrementDownloadCount(Long fileId) {
         EnterpriseFile file = getFileEntityById(fileId);
         file.setDownloadCount(file.getDownloadCount() != null ? file.getDownloadCount() + 1 : 1);
         file.setUpdatedAt(LocalDateTime.now());
@@ -426,24 +400,8 @@ public class FileManagementServiceImpl implements FileManagementService {
         }
     }
 
-    private String buildFilePath(String enterpriseId, String fileName) {
-        return FILE_UPLOAD_DIR + enterpriseId + "/" + fileName;
-    }
-
-    private String buildFileUrl(String enterpriseId, String fileName) {
-        // 这里可以根据实际情况配置文件访问URL
-        return "/api/enterprise/files/download/" + fileName + "?enterpriseId=" + enterpriseId;
-    }
-
-    private void saveFileToDisk(MultipartFile multipartFile, String filePath) {
-        try {
-            Path path = Paths.get(filePath);
-            Files.createDirectories(path.getParent());
-            Files.write(path, multipartFile.getBytes());
-        } catch (IOException e) {
-            log.error("文件保存到磁盘失败: filePath={}, error={}", filePath, e.getMessage());
-            throw new BusinessException(ErrorCode.FILE_OPERATION_ERROR.getCode(), "文件保存失败");
-        }
+    private String buildObjectKey(Long enterpriseId, String fileName) {
+        return "enterprise/" + enterpriseId + "/" + fileName;
     }
 
     private FileResponseDTO convertToResponseDTO(EnterpriseFile file) {
@@ -475,7 +433,7 @@ public class FileManagementServiceImpl implements FileManagementService {
         }
     }
 
-    private void checkEnterpriseAccessPermission(String enterpriseId) {
+    private void checkEnterpriseAccessPermission(Long enterpriseId) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND.getCode(), "用户不存在"));

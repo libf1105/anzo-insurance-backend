@@ -15,7 +15,7 @@ public class PolicyCancelDTO {
      * 保单ID
      */
     @NotNull(message = "保单ID不能为空")
-    private String id;
+    private Long id;
 
     /**
      * 操作类型：cancel-撤销，surrender-退保

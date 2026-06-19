@@ -36,7 +36,7 @@ public class FileUploadDTO {
     /**
      * 企业ID（从token中获取，非必填）
      */
-    private String enterpriseId;
+    private Long enterpriseId;
 
     /**
      * 文件元数据（JSON格式）

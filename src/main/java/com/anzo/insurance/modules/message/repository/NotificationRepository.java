@@ -21,21 +21,21 @@ public interface NotificationRepository extends BaseMapper<Notification> {
      */
     @Select("SELECT * FROM notifications WHERE user_id = #{userId} " +
             "AND deleted = false ORDER BY created_at DESC LIMIT #{limit}")
-    List<Notification> findByUserId(@Param("userId") String userId, @Param("limit") int limit);
+    List<Notification> findByUserId(@Param("userId") Long userId, @Param("limit") int limit);
 
     /**
      * 根据企业ID查询通知
      */
     @Select("SELECT * FROM notifications WHERE enterprise_id = #{enterpriseId} " +
             "AND deleted = false ORDER BY created_at DESC")
-    List<Notification> findByEnterpriseId(@Param("enterpriseId") String enterpriseId);
+    List<Notification> findByEnterpriseId(@Param("enterpriseId") Long enterpriseId);
 
     /**
      * 根据用户ID和状态查询通知
      */
     @Select("SELECT * FROM notifications WHERE user_id = #{userId} " +
             "AND status = #{status} AND deleted = false ORDER BY created_at DESC")
-    List<Notification> findByUserIdAndStatus(@Param("userId") String userId,
+    List<Notification> findByUserIdAndStatus(@Param("userId") Long userId,
                                               @Param("status") String status);
 
     /**
@@ -44,7 +44,7 @@ public interface NotificationRepository extends BaseMapper<Notification> {
     @Select("SELECT COUNT(*) FROM notifications WHERE user_id = #{userId} " +
             "AND status = 'UNREAD' AND deleted = false " +
             "AND (expires_at IS NULL OR expires_at > #{now})")
-    Integer getUnreadCountByUserId(@Param("userId") String userId, @Param("now") LocalDateTime now);
+    Integer getUnreadCountByUserId(@Param("userId") Long userId, @Param("now") LocalDateTime now);
 
     /**
      * 根据企业ID获取未读通知数量
@@ -52,7 +52,7 @@ public interface NotificationRepository extends BaseMapper<Notification> {
     @Select("SELECT COUNT(*) FROM notifications WHERE enterprise_id = #{enterpriseId} " +
             "AND status = 'UNREAD' AND deleted = false " +
             "AND (expires_at IS NULL OR expires_at > #{now})")
-    Integer getUnreadCountByEnterpriseId(@Param("enterpriseId") String enterpriseId,
+    Integer getUnreadCountByEnterpriseId(@Param("enterpriseId") Long enterpriseId,
                                          @Param("now") LocalDateTime now);
 
     /**
@@ -60,21 +60,21 @@ public interface NotificationRepository extends BaseMapper<Notification> {
      */
     @Update("UPDATE notifications SET status = 'READ', read_at = #{readAt} " +
             "WHERE id = #{id} AND deleted = false")
-    int markAsRead(@Param("id") String id, @Param("readAt") LocalDateTime readAt);
+    int markAsRead(@Param("id") Long id, @Param("readAt") LocalDateTime readAt);
 
     /**
      * 批量标记通知为已读
      */
     @Update("UPDATE notifications SET status = 'READ', read_at = #{readAt} " +
             "WHERE user_id = #{userId} AND status = 'UNREAD' AND deleted = false")
-    int markAllAsReadByUserId(@Param("userId") String userId, @Param("readAt") LocalDateTime readAt);
+    int markAllAsReadByUserId(@Param("userId") Long userId, @Param("readAt") LocalDateTime readAt);
 
     /**
      * 批量标记企业通知为已读
      */
     @Update("UPDATE notifications SET status = 'READ', read_at = #{readAt} " +
             "WHERE enterprise_id = #{enterpriseId} AND status = 'UNREAD' AND deleted = false")
-    int markAllAsReadByEnterpriseId(@Param("enterpriseId") String enterpriseId,
+    int markAllAsReadByEnterpriseId(@Param("enterpriseId") Long enterpriseId,
                                      @Param("readAt") LocalDateTime readAt);
 
     /**
@@ -88,7 +88,7 @@ public interface NotificationRepository extends BaseMapper<Notification> {
             "  WHEN 'NORMAL' THEN 3 " +
             "  WHEN 'LOW' THEN 4 " +
             "END, created_at DESC LIMIT #{limit}")
-    List<Notification> findLatestByUserId(@Param("userId") String userId,
+    List<Notification> findLatestByUserId(@Param("userId") Long userId,
                                           @Param("limit") int limit,
                                           @Param("now") LocalDateTime now);
 
@@ -103,7 +103,7 @@ public interface NotificationRepository extends BaseMapper<Notification> {
             "  WHEN 'NORMAL' THEN 3 " +
             "  WHEN 'LOW' THEN 4 " +
             "END, created_at DESC")
-    List<Notification> findByEnterpriseIdWithPriority(@Param("enterpriseId") String enterpriseId,
+    List<Notification> findByEnterpriseIdWithPriority(@Param("enterpriseId") Long enterpriseId,
                                                       @Param("now") LocalDateTime now);
 
     /**
@@ -126,7 +126,7 @@ public interface NotificationRepository extends BaseMapper<Notification> {
             "FROM notifications " +
             "WHERE user_id = #{userId} AND deleted = false " +
             "AND (expires_at IS NULL OR expires_at > #{now})")
-    NotificationStatistics getNotificationStatistics(@Param("userId") String userId,
+    NotificationStatistics getNotificationStatistics(@Param("userId") Long userId,
                                                      @Param("now") LocalDateTime now);
 
     /**

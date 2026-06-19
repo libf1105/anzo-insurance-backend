@@ -4,8 +4,10 @@ import com.anzo.insurance.modules.auth.dto.LoginDTO;
 import com.anzo.insurance.modules.auth.dto.RegisterDTO;
 import com.anzo.insurance.modules.auth.dto.AuthResponseDTO;
 import com.anzo.insurance.modules.auth.dto.ChangePasswordDTO;
+import com.anzo.insurance.modules.auth.dto.RegisterLicenseUploadResponseDTO;
 import com.anzo.insurance.modules.auth.dto.ResetPasswordDTO;
 import com.anzo.insurance.modules.auth.dto.UpdateProfileDTO;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * 认证服务接口
@@ -21,6 +23,11 @@ public interface AuthService {
      * 用户注册
      */
     AuthResponseDTO register(RegisterDTO registerDTO);
+
+    /**
+     * 注册前上传营业执照
+     */
+    RegisterLicenseUploadResponseDTO uploadRegisterLicense(MultipartFile file);
     
     /**
      * 用户登出

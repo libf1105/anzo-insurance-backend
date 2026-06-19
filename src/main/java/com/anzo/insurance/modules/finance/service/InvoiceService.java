@@ -14,7 +14,7 @@ public interface InvoiceService {
     /**
      * 获取发票详情
      */
-    InvoiceDTO getInvoice(String id);
+    InvoiceDTO getInvoice(Long id);
 
     /**
      * 分页查询发票列表
@@ -44,22 +44,22 @@ public interface InvoiceService {
     /**
      * 更新发票状态
      */
-    void updateInvoiceStatus(String id, Integer status, String remark);
+    void updateInvoiceStatus(Long id, Integer status, String remark);
 
     /**
      * 获取企业发票统计
      */
-    java.util.Map<String, Object> getEnterpriseInvoiceStats(String enterpriseId, String startTime, String endTime);
+    java.util.Map<String, Object> getEnterpriseInvoiceStats(Long enterpriseId, String startTime, String endTime);
 
     /**
      * 批量开票
      */
-    void batchIssueInvoices(java.util.List<String> invoiceIds);
+    void batchIssueInvoices(java.util.List<Long> invoiceIds);
 
     /**
      * 下载发票文件
      */
-    String downloadInvoiceFile(String id);
+    String downloadInvoiceFile(Long id);
 
     /**
      * 导出发票列表
@@ -69,5 +69,5 @@ public interface InvoiceService {
     /**
      * 查询可申请发票的账单列表
      */
-    java.util.List<com.anzo.insurance.modules.finance.dto.BillDTO> queryAvailableBillsForInvoice(String enterpriseId);
+    java.util.List<com.anzo.insurance.modules.finance.dto.BillDTO> queryAvailableBillsForInvoice(Long enterpriseId);
 }

@@ -46,5 +46,5 @@ public class ApplicationQueryDTO {
     private String sortOrder = "DESC";
     
     @Schema(description = "投保人ID")
-    private String applicantId;
+    private Long applicantId;
 }

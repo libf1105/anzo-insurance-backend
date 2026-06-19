@@ -38,7 +38,7 @@ public class ClaimController {
     @PutMapping("/{id}")
     @Operation(summary = "更新理赔")
     public ApiResponse<ClaimResponseDTO> updateClaim(
-            @PathVariable String id,
+            @PathVariable Long id,
             @Valid @RequestBody ClaimUpdateDTO dto) {
         log.info("更新理赔: id={}, data={}", id, dto);
         ClaimResponseDTO result = claimService.updateClaim(id, dto);
@@ -47,7 +47,7 @@ public class ClaimController {
 
     @GetMapping("/{id}")
     @Operation(summary = "获取理赔详情")
-    public ApiResponse<ClaimResponseDTO> getClaim(@PathVariable String id) {
+    public ApiResponse<ClaimResponseDTO> getClaim(@PathVariable Long id) {
         log.info("获取理赔详情: id={}", id);
         ClaimResponseDTO result = claimService.getClaim(id);
         return ApiResponse.success(result);
@@ -87,7 +87,7 @@ public class ClaimController {
     @PostMapping("/{id}/materials")
     @Operation(summary = "提交理赔材料")
     public ApiResponse<ClaimResponseDTO> submitMaterials(
-            @PathVariable String id,
+            @PathVariable Long id,
             @RequestBody List<ClaimMaterialCreateDTO> materials) {
         log.info("提交理赔材料: id={}, materials={}", id, materials.size());
         ClaimResponseDTO result = claimService.submitMaterials(id, materials);
@@ -97,7 +97,7 @@ public class ClaimController {
     @PutMapping("/{id}/materials/review")
     @Operation(summary = "审核理赔材料")
     public ApiResponse<ClaimResponseDTO> reviewMaterials(
-            @PathVariable String id,
+            @PathVariable Long id,
             @RequestBody ClaimMaterialReviewDTO reviewDTO) {
         log.info("审核理赔材料: id={}, review={}", id, reviewDTO);
         ClaimResponseDTO result = claimService.reviewMaterials(id, reviewDTO);
@@ -107,7 +107,7 @@ public class ClaimController {
     @PutMapping("/{id}/assign-handler")
     @Operation(summary = "指派处理人")
     public ApiResponse<ClaimResponseDTO> assignHandler(
-            @PathVariable String id,
+            @PathVariable Long id,
             @RequestBody AssignHandlerDTO assignDTO) {
         log.info("指派处理人: id={}, handler={}", id, assignDTO);
         ClaimResponseDTO result = claimService.assignHandler(id, assignDTO.getHandlerUserId(),
@@ -118,7 +118,7 @@ public class ClaimController {
     @PutMapping("/{id}/survey-report")
     @Operation(summary = "提交查勘报告")
     public ApiResponse<ClaimResponseDTO> submitSurveyReport(
-            @PathVariable String id,
+            @PathVariable Long id,
             @RequestBody SurveyReportDTO surveyDTO) {
         log.info("提交查勘报告: id={}", id);
         ClaimResponseDTO result = claimService.submitSurveyReport(id, surveyDTO.getSurveyReport());
@@ -128,7 +128,7 @@ public class ClaimController {
     @PutMapping("/{id}/review")
     @Operation(summary = "审核理赔")
     public ApiResponse<ClaimResponseDTO> reviewClaim(
-            @PathVariable String id,
+            @PathVariable Long id,
             @RequestBody ClaimReviewDTO reviewDTO) {
         log.info("审核理赔: id={}, review={}", id, reviewDTO);
         ClaimResponseDTO result = claimService.reviewClaim(id, reviewDTO.getReviewRemark(), reviewDTO.isApproved());
@@ -138,7 +138,7 @@ public class ClaimController {
     @PutMapping("/{id}/payment")
     @Operation(summary = "处理赔付")
     public ApiResponse<ClaimResponseDTO> processPayment(
-            @PathVariable String id,
+            @PathVariable Long id,
             @RequestBody PaymentDTO paymentDTO) {
         log.info("处理赔付: id={}, amount={}", id, paymentDTO.getPaymentAmount());
         ClaimResponseDTO result = claimService.processPayment(id, paymentDTO.getPaymentAmount());
@@ -148,7 +148,7 @@ public class ClaimController {
     @PutMapping("/{id}/reject")
     @Operation(summary = "拒赔")
     public ApiResponse<ClaimResponseDTO> rejectClaim(
-            @PathVariable String id,
+            @PathVariable Long id,
             @RequestBody RejectClaimDTO rejectDTO) {
         log.info("拒赔: id={}, reason={}", id, rejectDTO.getRejectReason());
         ClaimResponseDTO result = claimService.rejectClaim(id, rejectDTO.getRejectReason());
@@ -158,7 +158,7 @@ public class ClaimController {
     @PutMapping("/{id}/withdraw")
     @Operation(summary = "撤回理赔")
     public ApiResponse<ClaimResponseDTO> withdrawClaim(
-            @PathVariable String id,
+            @PathVariable Long id,
             @RequestBody WithdrawClaimDTO withdrawDTO) {
         log.info("撤回理赔: id={}, reason={}", id, withdrawDTO.getWithdrawReason());
         ClaimResponseDTO result = claimService.withdrawClaim(id, withdrawDTO.getWithdrawReason());
@@ -167,7 +167,7 @@ public class ClaimController {
 
     @GetMapping("/{id}/process-records")
     @Operation(summary = "获取理赔处理记录")
-    public ApiResponse<List<ClaimProcessRecordDTO>> getProcessRecords(@PathVariable String id) {
+    public ApiResponse<List<ClaimProcessRecordDTO>> getProcessRecords(@PathVariable Long id) {
         log.info("获取理赔处理记录: id={}", id);
         List<ClaimProcessRecordDTO> result = claimService.getProcessRecords(id);
         return ApiResponse.success(result);
@@ -176,7 +176,7 @@ public class ClaimController {
     @PostMapping("/{id}/process-records")
     @Operation(summary = "添加处理记录")
     public ApiResponse<ClaimResponseDTO> addProcessRecord(
-            @PathVariable String id,
+            @PathVariable Long id,
             @RequestBody ClaimProcessRecordCreateDTO recordDTO) {
         log.info("添加处理记录: id={}, record={}", id, recordDTO);
         ClaimResponseDTO result = claimService.addProcessRecord(id, recordDTO);
@@ -185,14 +185,14 @@ public class ClaimController {
 
     // 辅助DTO类
     public static class AssignHandlerDTO {
-        private String handlerUserId;
+        private Long handlerUserId;
         private String handlerUserName;
 
-        public String getHandlerUserId() {
+        public Long getHandlerUserId() {
             return handlerUserId;
         }
 
-        public void setHandlerUserId(String handlerUserId) {
+        public void setHandlerUserId(Long handlerUserId) {
             this.handlerUserId = handlerUserId;
         }
 

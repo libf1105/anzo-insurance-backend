@@ -22,7 +22,7 @@ public class ResetPasswordDTO {
     private String phone;
 
     @NotBlank(message = "新密码不能为空")
-    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[a-zA-Z\\d@$!%*?&]{8,}$",
+    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)\\S{8,}$",
             message = "密码必须包含大小写字母和数字，长度至少8位")
     @Schema(description = "新密码", required = true)
     private String newPassword;

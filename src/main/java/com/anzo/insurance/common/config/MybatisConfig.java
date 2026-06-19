@@ -4,6 +4,8 @@ import com.anzo.insurance.common.security.SecurityUtil;
 import com.baomidou.mybatisplus.annotation.DbType;
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
+import com.baomidou.mybatisplus.extension.plugins.inner.BlockAttackInnerInterceptor;
+import com.baomidou.mybatisplus.extension.plugins.inner.OptimisticLockerInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
 import org.apache.ibatis.reflection.MetaObject;
 import org.springframework.context.annotation.Bean;
@@ -26,6 +28,8 @@ public class MybatisConfig implements MetaObjectHandler {
         paginationInnerInterceptor.setMaxLimit(1000L); // 最大单页限制数量
         paginationInnerInterceptor.setOverflow(true); // 溢出总页数后是否进行处理
         interceptor.addInnerInterceptor(paginationInnerInterceptor);
+        interceptor.addInnerInterceptor(new OptimisticLockerInnerInterceptor());
+        interceptor.addInnerInterceptor(new BlockAttackInnerInterceptor());
         
         return interceptor;
     }
@@ -38,6 +42,8 @@ public class MybatisConfig implements MetaObjectHandler {
         this.strictInsertFill(metaObject, "createdAt", LocalDateTime.class, LocalDateTime.now());
         this.strictInsertFill(metaObject, "updatedBy", String.class, userId);
         this.strictInsertFill(metaObject, "updatedAt", LocalDateTime.class, LocalDateTime.now());
+        this.strictInsertFill(metaObject, "version", Integer.class, 1);
+        this.strictInsertFill(metaObject, "deleted", Boolean.class, false);
     }
     
     @Override
@@ -53,9 +59,9 @@ public class MybatisConfig implements MetaObjectHandler {
      */
     private String getCurrentUserId() {
         try {
-            String userId = SecurityUtil.getCurrentUserId();
-            if (userId != null && !userId.isBlank()) {
-                return userId;
+            Long userId = SecurityUtil.getCurrentUserId();
+            if (userId != null) {
+                return String.valueOf(userId);
             }
         } catch (Exception e) {
             // 忽略异常，返回默认值

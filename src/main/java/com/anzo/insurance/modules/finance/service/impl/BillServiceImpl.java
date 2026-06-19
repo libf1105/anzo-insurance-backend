@@ -26,7 +26,6 @@ import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,7 +42,7 @@ public class BillServiceImpl extends ServiceImpl<BillMapper, Bill> implements Bi
     private WalletService walletService;
 
     @Override
-    public BillDTO getBill(String id) {
+    public BillDTO getBill(Long id) {
         Bill bill = baseMapper.selectById(id);
         if (bill == null) {
             throw new BusinessException("账单不存在");
@@ -56,7 +55,7 @@ public class BillServiceImpl extends ServiceImpl<BillMapper, Bill> implements Bi
         Page<Bill> page = new Page<>(queryDTO.getPageNum(), queryDTO.getPageSize());
         LambdaQueryWrapper<Bill> queryWrapper = new LambdaQueryWrapper<>();
 
-        if (isNotBlank(queryDTO.getEnterpriseId())) {
+        if (queryDTO.getEnterpriseId() != null) {
             queryWrapper.eq(Bill::getEnterpriseId, queryDTO.getEnterpriseId());
         }
         if (isNotBlank(queryDTO.getBillNo())) {
@@ -117,7 +116,7 @@ public class BillServiceImpl extends ServiceImpl<BillMapper, Bill> implements Bi
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public BillDTO generateMonthlyBill(String enterpriseId, String billingPeriod) {
+    public BillDTO generateMonthlyBill(Long enterpriseId, String billingPeriod) {
         YearMonth yearMonth = YearMonth.parse(billingPeriod, DateTimeFormatter.ofPattern("yyyy-MM"));
         LocalDate periodStart = yearMonth.atDay(1);
         LocalDate periodEnd = yearMonth.atEndOfMonth();
@@ -138,7 +137,6 @@ public class BillServiceImpl extends ServiceImpl<BillMapper, Bill> implements Bi
 
         BigDecimal billAmount = new BigDecimal("5000.00");
         Bill bill = new Bill();
-        bill.setId(generateId());
         bill.setBillNo(generateBillNo());
         bill.setEnterpriseId(enterpriseId);
         bill.setBillType(1);
@@ -221,7 +219,7 @@ public class BillServiceImpl extends ServiceImpl<BillMapper, Bill> implements Bi
 
         bill.setReconciliationStatus(1);
         bill.setReconciliationTime(LocalDateTime.now());
-        bill.setReconciliationUserId("system");
+        bill.setReconciliationUserId(null);
         bill.setReconciliationUserName("系统管理员");
         if (billReconcileDTO.getReconciliationFileUrl() != null) {
             bill.setAttachmentUrl(billReconcileDTO.getReconciliationFileUrl());
@@ -232,7 +230,7 @@ public class BillServiceImpl extends ServiceImpl<BillMapper, Bill> implements Bi
     }
 
     @Override
-    public void updateBillStatus(String id, Integer status, String remark) {
+    public void updateBillStatus(Long id, Integer status, String remark) {
         Bill bill = baseMapper.selectById(id);
         if (bill == null) {
             throw new BusinessException("账单不存在");
@@ -244,7 +242,7 @@ public class BillServiceImpl extends ServiceImpl<BillMapper, Bill> implements Bi
     }
 
     @Override
-    public Map<String, Object> getEnterpriseBillStats(String enterpriseId, String billingPeriod) {
+    public Map<String, Object> getEnterpriseBillStats(Long enterpriseId, String billingPeriod) {
         Map<String, Object> stats = new HashMap<>();
         LambdaQueryWrapper<Bill> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Bill::getEnterpriseId, enterpriseId);
@@ -292,12 +290,12 @@ public class BillServiceImpl extends ServiceImpl<BillMapper, Bill> implements Bi
     }
 
     @Override
-    public void sendBillReminder(String billId) {
+    public void sendBillReminder(Long billId) {
         // 当前版本未集成消息中心，先保留为空实现。
     }
 
     @Override
-    public String downloadBillFile(String id) {
+    public String downloadBillFile(Long id) {
         return "/api/finance/bill/" + id + "/download";
     }
 
@@ -422,10 +420,6 @@ public class BillServiceImpl extends ServiceImpl<BillMapper, Bill> implements Bi
     private String csv(Object value) {
         String text = value == null ? "" : String.valueOf(value);
         return "\"" + text.replace("\"", "\"\"") + "\"";
-    }
-
-    private String generateId() {
-        return UUID.randomUUID().toString().replace("-", "");
     }
 
     private String generateBillNo() {

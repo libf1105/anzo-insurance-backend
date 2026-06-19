@@ -27,7 +27,7 @@ public class TransactionRecord extends BaseEntity {
      * 企业ID
      */
     @TableField("enterprise_id")
-    private String enterpriseId;
+    private Long enterpriseId;
 
     /**
      * 交易类型：1-充值，2-投保扣费，3-退费，4-退款，5-调整，6-冻结，7-解冻
@@ -75,7 +75,7 @@ public class TransactionRecord extends BaseEntity {
      * 关联业务ID（如保单ID、充值记录ID等）
      */
     @TableField("related_business_id")
-    private String relatedBusinessId;
+    private Long relatedBusinessId;
 
     /**
      * 关联业务类型：policy-保单，recharge-充值，refund-退款，adjustment-调整
@@ -129,7 +129,7 @@ public class TransactionRecord extends BaseEntity {
      * 操作用户ID
      */
     @TableField("operator_user_id")
-    private String operatorUserId;
+    private Long operatorUserId;
 
     /**
      * 操作用户名
@@ -165,7 +165,7 @@ public class TransactionRecord extends BaseEntity {
      * 审核人用户ID
      */
     @TableField("auditor_user_id")
-    private String auditorUserId;
+    private Long auditorUserId;
 
     /**
      * 审核人用户名

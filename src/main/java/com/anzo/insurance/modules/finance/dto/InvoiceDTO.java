@@ -14,7 +14,7 @@ public class InvoiceDTO {
     /**
      * 发票ID
      */
-    private String id;
+    private Long id;
 
     /**
      * 发票号码
@@ -24,7 +24,7 @@ public class InvoiceDTO {
     /**
      * 企业ID
      */
-    private String enterpriseId;
+    private Long enterpriseId;
 
     /**
      * 企业名称
@@ -34,7 +34,7 @@ public class InvoiceDTO {
     /**
      * 申请单ID
      */
-    private String applicationId;
+    private Long applicationId;
 
     /**
      * 申请金额
@@ -104,7 +104,7 @@ public class InvoiceDTO {
     /**
      * 购买方纳税人识别号
      */
-    private String buyerTaxpayerId;
+    private Long buyerTaxpayerId;
 
     /**
      * 购买方地址电话

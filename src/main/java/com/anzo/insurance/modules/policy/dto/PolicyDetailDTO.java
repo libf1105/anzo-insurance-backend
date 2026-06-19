@@ -14,7 +14,7 @@ public class PolicyDetailDTO {
     /**
      * 保单ID
      */
-    private String id;
+    private Long id;
 
     /**
      * 保单号
@@ -24,12 +24,12 @@ public class PolicyDetailDTO {
     /**
      * 投保申请ID
      */
-    private String applicationId;
+    private Long applicationId;
 
     /**
      * 企业ID
      */
-    private String enterpriseId;
+    private Long enterpriseId;
 
     /**
      * 企业名称
@@ -39,7 +39,7 @@ public class PolicyDetailDTO {
     /**
      * 投保人用户ID
      */
-    private String applicantUserId;
+    private Long applicantUserId;
 
     /**
      * 投保人用户名
@@ -59,7 +59,7 @@ public class PolicyDetailDTO {
     /**
      * 保险公司ID
      */
-    private String insurerId;
+    private Long insurerId;
 
     /**
      * 保险公司名称

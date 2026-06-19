@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @TableName("user")
 public class User extends BaseEntity {
     
-    private String enterpriseId;
+    private Long enterpriseId;
     
     private String username;
     

@@ -18,7 +18,7 @@ public class NotificationDTO {
     /**
      * 通知ID
      */
-    private String id;
+    private Long id;
 
     /**
      * 通知标题
@@ -62,17 +62,17 @@ public class NotificationDTO {
     /**
      * 接收用户ID列表（为空表示发送给企业所有用户）
      */
-    private List<String> userIds;
+    private List<Long> userIds;
 
     /**
      * 企业ID（为空表示从当前用户获取）
      */
-    private String enterpriseId;
+    private Long enterpriseId;
 
     /**
      * 关联的业务ID
      */
-    private String relatedId;
+    private Long relatedId;
 
     /**
      * 关联的业务类型
@@ -102,7 +102,7 @@ public class NotificationDTO {
     /**
      * 发送用户ID（系统发送为null）
      */
-    private String senderId;
+    private Long senderId;
 
     /**
      * 发送用户姓名（用于显示）

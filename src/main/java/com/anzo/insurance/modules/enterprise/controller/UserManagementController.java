@@ -32,7 +32,7 @@ public class UserManagementController {
     @GetMapping
     @PreAuthorize("@enterprisePermissionService.hasEnterpriseAccess(#enterpriseId)")
     public ApiResponse<Page<User>> getEnterpriseUsers(
-            @Parameter(description = "企业ID") @PathVariable String enterpriseId,
+            @Parameter(description = "企业ID") @PathVariable Long enterpriseId,
             @Parameter(description = "页码") @RequestParam(defaultValue = "1") Integer page,
             @Parameter(description = "每页条数") @RequestParam(defaultValue = "20") Integer size,
             @Parameter(description = "排序字段") @RequestParam(defaultValue = "createdAt") String sort,
@@ -49,7 +49,7 @@ public class UserManagementController {
     @GetMapping("/search")
     @PreAuthorize("@enterprisePermissionService.hasEnterpriseAccess(#enterpriseId)")
     public ApiResponse<Page<User>> searchEnterpriseUsers(
-            @Parameter(description = "企业ID") @PathVariable String enterpriseId,
+            @Parameter(description = "企业ID") @PathVariable Long enterpriseId,
             @Parameter(description = "搜索关键词") @RequestParam String keyword,
             @Parameter(description = "页码") @RequestParam(defaultValue = "1") Integer page,
             @Parameter(description = "每页条数") @RequestParam(defaultValue = "20") Integer size) {
@@ -64,7 +64,7 @@ public class UserManagementController {
     @PostMapping
     @PreAuthorize("@enterprisePermissionService.hasAdminAccess(#enterpriseId)")
     public ApiResponse<User> createEnterpriseUser(
-            @Parameter(description = "企业ID") @PathVariable String enterpriseId,
+            @Parameter(description = "企业ID") @PathVariable Long enterpriseId,
             @Valid @RequestBody UserCreateDTO createDTO) {
         
         User user = userManagementService.createEnterpriseUser(enterpriseId, createDTO);
@@ -75,8 +75,8 @@ public class UserManagementController {
     @GetMapping("/{userId}")
     @PreAuthorize("@enterprisePermissionService.hasEnterpriseAccess(#enterpriseId)")
     public ApiResponse<User> getUser(
-            @Parameter(description = "企业ID") @PathVariable String enterpriseId,
-            @Parameter(description = "用户ID") @PathVariable String userId) {
+            @Parameter(description = "企业ID") @PathVariable Long enterpriseId,
+            @Parameter(description = "用户ID") @PathVariable Long userId) {
         
         User user = userManagementService.getUser(enterpriseId, userId);
         return ApiResponse.success(user);
@@ -86,8 +86,8 @@ public class UserManagementController {
     @PutMapping("/{userId}")
     @PreAuthorize("@enterprisePermissionService.hasAdminAccess(#enterpriseId) or @enterprisePermissionService.isSelf(#enterpriseId, #userId)")
     public ApiResponse<Void> updateUser(
-            @Parameter(description = "企业ID") @PathVariable String enterpriseId,
-            @Parameter(description = "用户ID") @PathVariable String userId,
+            @Parameter(description = "企业ID") @PathVariable Long enterpriseId,
+            @Parameter(description = "用户ID") @PathVariable Long userId,
             @Valid @RequestBody UserUpdateDTO updateDTO) {
         
         userManagementService.updateUser(enterpriseId, userId, updateDTO);
@@ -98,8 +98,8 @@ public class UserManagementController {
     @DeleteMapping("/{userId}")
     @PreAuthorize("@enterprisePermissionService.hasAdminAccess(#enterpriseId)")
     public ApiResponse<Void> deleteUser(
-            @Parameter(description = "企业ID") @PathVariable String enterpriseId,
-            @Parameter(description = "用户ID") @PathVariable String userId) {
+            @Parameter(description = "企业ID") @PathVariable Long enterpriseId,
+            @Parameter(description = "用户ID") @PathVariable Long userId) {
         
         userManagementService.deleteUser(enterpriseId, userId);
         return ApiResponse.success();
@@ -109,8 +109,8 @@ public class UserManagementController {
     @PostMapping("/{userId}/enable")
     @PreAuthorize("@enterprisePermissionService.hasAdminAccess(#enterpriseId)")
     public ApiResponse<Void> enableUser(
-            @Parameter(description = "企业ID") @PathVariable String enterpriseId,
-            @Parameter(description = "用户ID") @PathVariable String userId) {
+            @Parameter(description = "企业ID") @PathVariable Long enterpriseId,
+            @Parameter(description = "用户ID") @PathVariable Long userId) {
         
         userManagementService.enableUser(enterpriseId, userId);
         return ApiResponse.success();
@@ -120,8 +120,8 @@ public class UserManagementController {
     @PostMapping("/{userId}/disable")
     @PreAuthorize("@enterprisePermissionService.hasAdminAccess(#enterpriseId)")
     public ApiResponse<Void> disableUser(
-            @Parameter(description = "企业ID") @PathVariable String enterpriseId,
-            @Parameter(description = "用户ID") @PathVariable String userId) {
+            @Parameter(description = "企业ID") @PathVariable Long enterpriseId,
+            @Parameter(description = "用户ID") @PathVariable Long userId) {
         
         userManagementService.disableUser(enterpriseId, userId);
         return ApiResponse.success();
@@ -131,8 +131,8 @@ public class UserManagementController {
     @PostMapping("/{userId}/reset-password")
     @PreAuthorize("@enterprisePermissionService.hasAdminAccess(#enterpriseId) or @enterprisePermissionService.isSelf(#enterpriseId, #userId)")
     public ApiResponse<Void> resetPassword(
-            @Parameter(description = "企业ID") @PathVariable String enterpriseId,
-            @Parameter(description = "用户ID") @PathVariable String userId,
+            @Parameter(description = "企业ID") @PathVariable Long enterpriseId,
+            @Parameter(description = "用户ID") @PathVariable Long userId,
             @Parameter(description = "新密码") @RequestParam String newPassword) {
         
         userManagementService.resetPassword(enterpriseId, userId, newPassword);
@@ -143,7 +143,7 @@ public class UserManagementController {
     @GetMapping("/statistics")
     @PreAuthorize("@enterprisePermissionService.hasEnterpriseAccess(#enterpriseId)")
     public ApiResponse<UserManagementService.UserStatistics> getUserStatistics(
-            @Parameter(description = "企业ID") @PathVariable String enterpriseId) {
+            @Parameter(description = "企业ID") @PathVariable Long enterpriseId) {
         
         UserManagementService.UserStatistics statistics = userManagementService.getUserStatistics(enterpriseId);
         return ApiResponse.success(statistics);

@@ -20,12 +20,12 @@ public interface ClaimService {
     /**
      * 更新理赔
      */
-    ClaimResponseDTO updateClaim(String claimId, ClaimUpdateDTO dto);
+    ClaimResponseDTO updateClaim(Long claimId, ClaimUpdateDTO dto);
     
     /**
      * 获取理赔详情
      */
-    ClaimResponseDTO getClaim(String claimId);
+    ClaimResponseDTO getClaim(Long claimId);
     
     /**
      * 分页查询理赔
@@ -50,50 +50,50 @@ public interface ClaimService {
     /**
      * 提交理赔材料
      */
-    ClaimResponseDTO submitMaterials(String claimId, List<ClaimMaterialCreateDTO> materials);
+    ClaimResponseDTO submitMaterials(Long claimId, List<ClaimMaterialCreateDTO> materials);
     
     /**
      * 审核理赔材料
      */
-    ClaimResponseDTO reviewMaterials(String claimId, ClaimMaterialReviewDTO reviewDTO);
+    ClaimResponseDTO reviewMaterials(Long claimId, ClaimMaterialReviewDTO reviewDTO);
     
     /**
      * 指派处理人
      */
-    ClaimResponseDTO assignHandler(String claimId, String handlerUserId, String handlerUserName);
+    ClaimResponseDTO assignHandler(Long claimId, Long handlerUserId, String handlerUserName);
     
     /**
      * 提交查勘报告
      */
-    ClaimResponseDTO submitSurveyReport(String claimId, String surveyReport);
+    ClaimResponseDTO submitSurveyReport(Long claimId, String surveyReport);
     
     /**
      * 审核理赔
      */
-    ClaimResponseDTO reviewClaim(String claimId, String reviewRemark, boolean approved);
+    ClaimResponseDTO reviewClaim(Long claimId, String reviewRemark, boolean approved);
     
     /**
      * 处理赔付
      */
-    ClaimResponseDTO processPayment(String claimId, BigDecimal paymentAmount);
+    ClaimResponseDTO processPayment(Long claimId, BigDecimal paymentAmount);
     
     /**
      * 拒赔
      */
-    ClaimResponseDTO rejectClaim(String claimId, String rejectReason);
+    ClaimResponseDTO rejectClaim(Long claimId, String rejectReason);
     
     /**
      * 撤回理赔
      */
-    ClaimResponseDTO withdrawClaim(String claimId, String withdrawReason);
+    ClaimResponseDTO withdrawClaim(Long claimId, String withdrawReason);
     
     /**
      * 获取理赔处理记录
      */
-    List<ClaimProcessRecordDTO> getProcessRecords(String claimId);
+    List<ClaimProcessRecordDTO> getProcessRecords(Long claimId);
     
     /**
      * 添加处理记录
      */
-    ClaimResponseDTO addProcessRecord(String claimId, ClaimProcessRecordCreateDTO recordDTO);
+    ClaimResponseDTO addProcessRecord(Long claimId, ClaimProcessRecordCreateDTO recordDTO);
 }

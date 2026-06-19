@@ -15,7 +15,7 @@ public class InvoiceUpdateDTO {
      * 发票ID
      */
     @NotBlank(message = "发票ID不能为空")
-    private String id;
+    private Long id;
 
     /**
      * 操作类型（1-开票，2-作废，3-更新邮寄信息）

@@ -20,7 +20,7 @@ public class Wallet extends BaseEntity {
      * 企业ID
      */
     @TableField("enterprise_id")
-    private String enterpriseId;
+    private Long enterpriseId;
 
     /**
      * 可用余额

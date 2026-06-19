@@ -15,7 +15,7 @@ public class WalletUpdateDTO {
      * 钱包ID
      */
     @NotBlank(message = "钱包ID不能为空")
-    private String id;
+    private Long id;
 
     /**
      * 操作类型（1-充值，2-扣款，3-冻结，4-解冻，5-调整）
@@ -38,7 +38,7 @@ public class WalletUpdateDTO {
     /**
      * 业务ID（保单ID、申请单ID等）
      */
-    private String businessId;
+    private Long businessId;
 
     /**
      * 业务描述

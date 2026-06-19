@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class InsuranceApplication extends BaseEntity {
     
-    private String enterpriseId;
+    private Long enterpriseId;
     
     private String applicationNo;
     
@@ -35,13 +35,13 @@ public class InsuranceApplication extends BaseEntity {
     @TableField("insurance_product")
     private String insuranceProduct;
     
-    private String insurerId;
+    private Long insurerId;
     
     private String insurerName;
     
-    private String applicantId;
+    private Long applicantId;
     
-    private String insuredId;
+    private Long insuredId;
     
     // Step 2: 运输信息
     private String departureCountry;

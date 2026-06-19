@@ -20,7 +20,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 /**
@@ -33,7 +32,7 @@ public class TransactionRecordServiceImpl extends ServiceImpl<TransactionRecordM
     private TransactionRecordMapper transactionRecordMapper;
 
     @Override
-    public TransactionRecordDTO getTransactionRecord(String id) {
+    public TransactionRecordDTO getTransactionRecord(Long id) {
         TransactionRecord record = baseMapper.selectById(id);
         if (record == null) {
             throw new BusinessException("交易记录不存在");
@@ -46,7 +45,7 @@ public class TransactionRecordServiceImpl extends ServiceImpl<TransactionRecordM
         Page<TransactionRecord> page = new Page<>(queryDTO.getPageNum(), queryDTO.getPageSize());
         LambdaQueryWrapper<TransactionRecord> queryWrapper = new LambdaQueryWrapper<>();
 
-        if (isNotBlank(queryDTO.getEnterpriseId())) {
+        if (queryDTO.getEnterpriseId() != null) {
             queryWrapper.eq(TransactionRecord::getEnterpriseId, queryDTO.getEnterpriseId());
         }
         if (queryDTO.getTransactionType() != null) {
@@ -55,7 +54,7 @@ public class TransactionRecordServiceImpl extends ServiceImpl<TransactionRecordM
         if (queryDTO.getBusinessType() != null) {
             queryWrapper.eq(TransactionRecord::getRelatedBusinessType, getBusinessTypeString(queryDTO.getBusinessType()));
         }
-        if (isNotBlank(queryDTO.getBusinessId())) {
+        if (queryDTO.getBusinessId() != null) {
             queryWrapper.eq(TransactionRecord::getRelatedBusinessId, queryDTO.getBusinessId());
         }
         if (queryDTO.getStatus() != null) {
@@ -76,7 +75,7 @@ public class TransactionRecordServiceImpl extends ServiceImpl<TransactionRecordM
         if (queryDTO.getMaxAmount() != null) {
             queryWrapper.le(TransactionRecord::getAmount, queryDTO.getMaxAmount());
         }
-        if (isNotBlank(queryDTO.getOperatorUserId())) {
+        if (queryDTO.getOperatorUserId() != null) {
             queryWrapper.eq(TransactionRecord::getOperatorUserId, queryDTO.getOperatorUserId());
         }
 
@@ -105,7 +104,6 @@ public class TransactionRecordServiceImpl extends ServiceImpl<TransactionRecordM
     @Override
     public TransactionRecordDTO createTransactionRecord(TransactionRecordDTO transactionRecordDTO) {
         TransactionRecord record = new TransactionRecord();
-        record.setId(generateId());
         record.setTransactionNo(generateTransactionNo());
         record.setEnterpriseId(transactionRecordDTO.getEnterpriseId());
         record.setTransactionType(transactionRecordDTO.getTransactionType());
@@ -134,7 +132,7 @@ public class TransactionRecordServiceImpl extends ServiceImpl<TransactionRecordM
     }
 
     @Override
-    public void updateTransactionStatus(String id, Integer status, String remark) {
+    public void updateTransactionStatus(Long id, Integer status, String remark) {
         TransactionRecord record = baseMapper.selectById(id);
         if (record == null) {
             throw new BusinessException("交易记录不存在");
@@ -150,13 +148,13 @@ public class TransactionRecordServiceImpl extends ServiceImpl<TransactionRecordM
     }
 
     @Override
-    public TransactionRecordDTO getTransactionByBusinessId(String businessId) {
+    public TransactionRecordDTO getTransactionByBusinessId(Long businessId) {
         TransactionRecord record = transactionRecordMapper.selectByRelatedBusinessId(businessId);
         return record == null ? null : convertToDTO(record);
     }
 
     @Override
-    public Map<String, Object> getEnterpriseTransactionStats(String enterpriseId, String startTime, String endTime) {
+    public Map<String, Object> getEnterpriseTransactionStats(Long enterpriseId, String startTime, String endTime) {
         Map<String, Object> stats = new HashMap<>();
         LambdaQueryWrapper<TransactionRecord> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(TransactionRecord::getEnterpriseId, enterpriseId)
@@ -474,10 +472,6 @@ public class TransactionRecordServiceImpl extends ServiceImpl<TransactionRecordM
 
     private boolean isNotBlank(String value) {
         return value != null && !value.trim().isEmpty();
-    }
-
-    private String generateId() {
-        return UUID.randomUUID().toString().replace("-", "");
     }
 
     private String generateTransactionNo() {

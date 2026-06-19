@@ -16,7 +16,7 @@ public class ClaimResponseDTO {
     /**
      * 理赔ID
      */
-    private String id;
+    private Long id;
     
     /**
      * 理赔编号
@@ -26,12 +26,12 @@ public class ClaimResponseDTO {
     /**
      * 企业ID
      */
-    private String enterpriseId;
+    private Long enterpriseId;
     
     /**
      * 保单ID
      */
-    private String policyId;
+    private Long policyId;
     
     /**
      * 保单号
@@ -136,7 +136,7 @@ public class ClaimResponseDTO {
     /**
      * 处理人用户ID
      */
-    private String handlerUserId;
+    private Long handlerUserId;
     
     /**
      * 处理人用户名
@@ -151,7 +151,7 @@ public class ClaimResponseDTO {
     /**
      * 审核人用户ID
      */
-    private String reviewUserId;
+    private Long reviewUserId;
     
     /**
      * 审核人用户名
@@ -171,7 +171,7 @@ public class ClaimResponseDTO {
     /**
      * 查勘人用户ID
      */
-    private String surveyUserId;
+    private Long surveyUserId;
     
     /**
      * 查勘人用户名
@@ -191,7 +191,7 @@ public class ClaimResponseDTO {
     /**
      * 支付操作人ID
      */
-    private String paymentUserId;
+    private Long paymentUserId;
     
     /**
      * 支付操作人用户名

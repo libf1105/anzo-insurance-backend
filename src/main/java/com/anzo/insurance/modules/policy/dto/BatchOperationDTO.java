@@ -18,7 +18,7 @@ public class BatchOperationDTO {
      */
     @NotNull(message = "保单ID列表不能为空")
     @Size(min = 1, message = "至少选择一个保单")
-    private List<String> policyIds;
+    private List<Long> policyIds;
 
     /**
      * 操作类型：cancel-撤销，export-导出，download-下载保单

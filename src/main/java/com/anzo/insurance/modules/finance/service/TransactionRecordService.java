@@ -12,7 +12,7 @@ public interface TransactionRecordService {
     /**
      * 获取交易记录详情
      */
-    TransactionRecordDTO getTransactionRecord(String id);
+    TransactionRecordDTO getTransactionRecord(Long id);
 
     /**
      * 分页查询交易记录
@@ -27,17 +27,17 @@ public interface TransactionRecordService {
     /**
      * 更新交易记录状态
      */
-    void updateTransactionStatus(String id, Integer status, String remark);
+    void updateTransactionStatus(Long id, Integer status, String remark);
 
     /**
      * 根据业务ID查询交易记录
      */
-    TransactionRecordDTO getTransactionByBusinessId(String businessId);
+    TransactionRecordDTO getTransactionByBusinessId(Long businessId);
 
     /**
      * 获取企业交易统计
      */
-    java.util.Map<String, Object> getEnterpriseTransactionStats(String enterpriseId, String startTime, String endTime);
+    java.util.Map<String, Object> getEnterpriseTransactionStats(Long enterpriseId, String startTime, String endTime);
 
     /**
      * 导出交易记录

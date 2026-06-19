@@ -28,7 +28,7 @@ public class Bill extends BaseEntity {
      * 企业ID
      */
     @TableField("enterprise_id")
-    private String enterpriseId;
+    private Long enterpriseId;
 
     /**
      * 账单类型：1-月度账单，2-自定义账单，3-对账单
@@ -166,7 +166,7 @@ public class Bill extends BaseEntity {
      * 对账人用户ID
      */
     @TableField("reconciliation_user_id")
-    private String reconciliationUserId;
+    private Long reconciliationUserId;
 
     /**
      * 对账人用户名

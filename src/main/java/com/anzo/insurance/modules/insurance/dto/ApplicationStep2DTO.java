@@ -91,7 +91,7 @@ public class ApplicationStep2DTO {
     private List<TransportSegmentDTO> segments;
     
     @Schema(description = "投保申请ID，续写时传入")
-    private String applicationId;
+    private Long applicationId;
     
     /**
      * 多式联运运输段DTO

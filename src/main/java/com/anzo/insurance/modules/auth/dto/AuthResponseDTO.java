@@ -35,7 +35,7 @@ public class AuthResponseDTO {
     @Schema(description = "用户信息")
     public static class UserDTO {
         @Schema(description = "用户ID")
-        private String id;
+        private Long id;
         
         @Schema(description = "用户名")
         private String username;
@@ -64,7 +64,7 @@ public class AuthResponseDTO {
     @Schema(description = "企业信息")
     public static class EnterpriseDTO {
         @Schema(description = "企业ID")
-        private String id;
+        private Long id;
         
         @Schema(description = "企业名称")
         private String name;

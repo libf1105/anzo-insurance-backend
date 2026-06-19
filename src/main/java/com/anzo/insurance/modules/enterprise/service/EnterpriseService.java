@@ -17,7 +17,7 @@ public interface EnterpriseService {
     /**
      * 根据ID获取企业信息
      */
-    Enterprise getEnterpriseById(String enterpriseId);
+    Enterprise getEnterpriseById(Long enterpriseId);
     
     /**
      * 根据当前登录用户获取企业信息
@@ -27,7 +27,7 @@ public interface EnterpriseService {
     /**
      * 更新企业信息
      */
-    void updateEnterprise(String enterpriseId, EnterpriseUpdateDTO updateDTO);
+    void updateEnterprise(Long enterpriseId, EnterpriseUpdateDTO updateDTO);
     
     /**
      * 更新当前登录用户的企业信息
@@ -52,37 +52,37 @@ public interface EnterpriseService {
     /**
      * 启用企业
      */
-    void enableEnterprise(String enterpriseId);
+    void enableEnterprise(Long enterpriseId);
     
     /**
      * 禁用企业
      */
-    void disableEnterprise(String enterpriseId, String reason);
+    void disableEnterprise(Long enterpriseId, String reason);
     
     /**
      * 更新企业余额
      */
-    void updateEnterpriseBalance(String enterpriseId, String amount, String type);
+    void updateEnterpriseBalance(Long enterpriseId, String amount, String type);
     
     /**
      * 冻结企业余额
      */
-    void freezeEnterpriseBalance(String enterpriseId, String amount);
+    void freezeEnterpriseBalance(Long enterpriseId, String amount);
     
     /**
      * 解冻企业余额
      */
-    void unfreezeEnterpriseBalance(String enterpriseId, String amount);
+    void unfreezeEnterpriseBalance(Long enterpriseId, String amount);
     
     /**
      * 获取企业统计信息
      */
-    EnterpriseStatistics getEnterpriseStatistics(String enterpriseId);
+    EnterpriseStatistics getEnterpriseStatistics(Long enterpriseId);
     
     /**
      * 检查企业状态
      */
-    boolean checkEnterpriseStatus(String enterpriseId);
+    boolean checkEnterpriseStatus(Long enterpriseId);
     
     /**
      * 企业统计信息

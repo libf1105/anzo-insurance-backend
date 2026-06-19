@@ -30,7 +30,7 @@ public class WalletController {
     @ApiOperation("获取钱包详情")
     @GetMapping("/{id}")
     public ApiResponse<WalletDTO> getWalletDetail(
-            @ApiParam("钱包ID") @PathVariable String id) {
+            @ApiParam("钱包ID") @PathVariable Long id) {
         WalletDTO walletDetail = walletService.getWallet(id);
         return ApiResponse.success(walletDetail);
     }
@@ -38,7 +38,7 @@ public class WalletController {
     @ApiOperation("根据企业ID获取钱包")
     @GetMapping("/by-enterprise/{enterpriseId}")
     public ApiResponse<WalletDTO> getWalletByEnterpriseId(
-            @ApiParam("企业ID") @PathVariable String enterpriseId) {
+            @ApiParam("企业ID") @PathVariable Long enterpriseId) {
         WalletDTO walletDetail = walletService.getWalletByEnterpriseId(enterpriseId);
         return ApiResponse.success(walletDetail);
     }
@@ -53,7 +53,7 @@ public class WalletController {
     @ApiOperation("初始化企业钱包")
     @PostMapping("/init")
     public ApiResponse<WalletDTO> initWallet(
-            @ApiParam("企业ID") @RequestParam String enterpriseId,
+            @ApiParam("企业ID") @RequestParam Long enterpriseId,
             @ApiParam("企业名称") @RequestParam(required = false) String enterpriseName) {
         WalletDTO wallet = walletService.initWallet(enterpriseId, enterpriseName);
         return ApiResponse.success(wallet);
@@ -69,9 +69,9 @@ public class WalletController {
     @ApiOperation("冻结金额")
     @PostMapping("/freeze")
     public ApiResponse<WalletDTO> freezeAmount(
-            @ApiParam("钱包ID") @RequestParam String walletId,
+            @ApiParam("钱包ID") @RequestParam Long walletId,
             @ApiParam("冻结金额") @RequestParam BigDecimal amount,
-            @ApiParam("业务ID") @RequestParam(required = false) String businessId,
+            @ApiParam("业务ID") @RequestParam(required = false) Long businessId,
             @ApiParam("业务描述") @RequestParam(required = false) String businessDesc,
             @ApiParam("备注") @RequestParam(required = false) String remark) {
         WalletDTO wallet = walletService.freezeAmount(walletId, amount, businessId, businessDesc, remark);
@@ -81,9 +81,9 @@ public class WalletController {
     @ApiOperation("解冻金额")
     @PostMapping("/unfreeze")
     public ApiResponse<WalletDTO> unfreezeAmount(
-            @ApiParam("钱包ID") @RequestParam String walletId,
+            @ApiParam("钱包ID") @RequestParam Long walletId,
             @ApiParam("解冻金额") @RequestParam BigDecimal amount,
-            @ApiParam("业务ID") @RequestParam(required = false) String businessId,
+            @ApiParam("业务ID") @RequestParam(required = false) Long businessId,
             @ApiParam("业务描述") @RequestParam(required = false) String businessDesc,
             @ApiParam("备注") @RequestParam(required = false) String remark) {
         WalletDTO wallet = walletService.unfreezeAmount(walletId, amount, businessId, businessDesc, remark);
@@ -93,7 +93,7 @@ public class WalletController {
     @ApiOperation("账户充值")
     @PostMapping("/recharge")
     public ApiResponse<WalletDTO> recharge(
-            @ApiParam("钱包ID") @RequestParam String walletId,
+            @ApiParam("钱包ID") @RequestParam Long walletId,
             @ApiParam("充值金额") @RequestParam BigDecimal amount,
             @ApiParam("支付方式（1-在线支付，2-银行转账，3-余额支付）") @RequestParam Integer paymentMethod,
             @ApiParam("支付流水号") @RequestParam(required = false) String paymentNo,
@@ -105,9 +105,9 @@ public class WalletController {
     @ApiOperation("账户扣款")
     @PostMapping("/deduct")
     public ApiResponse<WalletDTO> deduct(
-            @ApiParam("钱包ID") @RequestParam String walletId,
+            @ApiParam("钱包ID") @RequestParam Long walletId,
             @ApiParam("扣款金额") @RequestParam BigDecimal amount,
-            @ApiParam("业务ID") @RequestParam String businessId,
+            @ApiParam("业务ID") @RequestParam Long businessId,
             @ApiParam("业务描述") @RequestParam String businessDesc,
             @ApiParam("备注") @RequestParam(required = false) String remark) {
         WalletDTO wallet = walletService.deduct(walletId, amount, businessId, businessDesc, remark);
@@ -117,9 +117,9 @@ public class WalletController {
     @ApiOperation("账户退款")
     @PostMapping("/refund")
     public ApiResponse<WalletDTO> refund(
-            @ApiParam("钱包ID") @RequestParam String walletId,
+            @ApiParam("钱包ID") @RequestParam Long walletId,
             @ApiParam("退款金额") @RequestParam BigDecimal amount,
-            @ApiParam("业务ID") @RequestParam String businessId,
+            @ApiParam("业务ID") @RequestParam Long businessId,
             @ApiParam("业务描述") @RequestParam String businessDesc,
             @ApiParam("备注") @RequestParam(required = false) String remark) {
         WalletDTO wallet = walletService.refund(walletId, amount, businessId, businessDesc, remark);

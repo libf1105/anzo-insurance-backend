@@ -14,7 +14,7 @@ public interface BillService {
     /**
      * 获取账单详情
      */
-    BillDTO getBill(String id);
+    BillDTO getBill(Long id);
 
     /**
      * 分页查询账单列表
@@ -24,7 +24,7 @@ public interface BillService {
     /**
      * 生成月度账单
      */
-    BillDTO generateMonthlyBill(String enterpriseId, String billingPeriod);
+    BillDTO generateMonthlyBill(Long enterpriseId, String billingPeriod);
 
     /**
      * 支付账单
@@ -39,12 +39,12 @@ public interface BillService {
     /**
      * 更新账单状态
      */
-    void updateBillStatus(String id, Integer status, String remark);
+    void updateBillStatus(Long id, Integer status, String remark);
 
     /**
      * 获取企业账单统计
      */
-    java.util.Map<String, Object> getEnterpriseBillStats(String enterpriseId, String billingPeriod);
+    java.util.Map<String, Object> getEnterpriseBillStats(Long enterpriseId, String billingPeriod);
 
     /**
      * 批量生成月度账单
@@ -54,12 +54,12 @@ public interface BillService {
     /**
      * 发送账单提醒
      */
-    void sendBillReminder(String billId);
+    void sendBillReminder(Long billId);
 
     /**
      * 下载账单文件
      */
-    String downloadBillFile(String id);
+    String downloadBillFile(Long id);
 
     /**
      * 导出账单列表

@@ -45,22 +45,22 @@ public class Notification extends BaseEntity {
     /**
      * 接收用户ID
      */
-    private String userId;
+    private Long userId;
 
     /**
      * 企业ID
      */
-    private String enterpriseId;
+    private Long enterpriseId;
 
     /**
      * 发送用户ID（如果是系统发送则为null）
      */
-    private String senderId;
+    private Long senderId;
 
     /**
      * 关联的业务ID（如保单ID、理赔ID等）
      */
-    private String relatedId;
+    private Long relatedId;
 
     /**
      * 关联的业务类型

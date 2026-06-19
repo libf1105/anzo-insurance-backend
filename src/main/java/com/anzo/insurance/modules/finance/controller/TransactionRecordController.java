@@ -29,7 +29,7 @@ public class TransactionRecordController {
     @ApiOperation("获取交易记录详情")
     @GetMapping("/{id}")
     public ApiResponse<TransactionRecordDTO> getTransactionDetail(
-            @ApiParam("交易记录ID") @PathVariable String id) {
+            @ApiParam("交易记录ID") @PathVariable Long id) {
         TransactionRecordDTO transactionDetail = transactionRecordService.getTransactionRecord(id);
         return ApiResponse.success(transactionDetail);
     }
@@ -44,7 +44,7 @@ public class TransactionRecordController {
     @ApiOperation("根据业务ID查询交易记录")
     @GetMapping("/by-business/{businessId}")
     public ApiResponse<TransactionRecordDTO> getTransactionByBusinessId(
-            @ApiParam("业务ID") @PathVariable String businessId) {
+            @ApiParam("业务ID") @PathVariable Long businessId) {
         TransactionRecordDTO transaction = transactionRecordService.getTransactionByBusinessId(businessId);
         return ApiResponse.success(transaction);
     }
@@ -52,7 +52,7 @@ public class TransactionRecordController {
     @ApiOperation("获取企业交易统计")
     @GetMapping("/stats/{enterpriseId}")
     public ApiResponse<Map<String, Object>> getEnterpriseTransactionStats(
-            @ApiParam("企业ID") @PathVariable String enterpriseId,
+            @ApiParam("企业ID") @PathVariable Long enterpriseId,
             @ApiParam("开始时间") @RequestParam(required = false) String startTime,
             @ApiParam("结束时间") @RequestParam(required = false) String endTime) {
         Map<String, Object> stats = transactionRecordService.getEnterpriseTransactionStats(enterpriseId, startTime, endTime);
@@ -62,7 +62,7 @@ public class TransactionRecordController {
     @ApiOperation("更新交易记录状态")
     @PutMapping("/{id}/status")
     public ApiResponse<Void> updateTransactionStatus(
-            @ApiParam("交易记录ID") @PathVariable String id,
+            @ApiParam("交易记录ID") @PathVariable Long id,
             @ApiParam("交易状态（0-待处理，1-处理中，2-成功，3-失败，4-已取消）") @RequestParam Integer status,
             @ApiParam("备注") @RequestParam(required = false) String remark) {
         transactionRecordService.updateTransactionStatus(id, status, remark);

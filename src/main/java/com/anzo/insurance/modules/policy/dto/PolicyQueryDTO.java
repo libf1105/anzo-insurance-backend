@@ -22,7 +22,7 @@ public class PolicyQueryDTO {
     /**
      * 保险公司ID
      */
-    private String insurerId;
+    private Long insurerId;
 
     /**
      * 贸易方向
@@ -77,10 +77,10 @@ public class PolicyQueryDTO {
     /**
      * 企业ID（用于权限控制）
      */
-    private String enterpriseId;
+    private Long enterpriseId;
 
     /**
      * 投保人用户ID（用于权限控制）
      */
-    private String applicantUserId;
+    private Long applicantUserId;
 }

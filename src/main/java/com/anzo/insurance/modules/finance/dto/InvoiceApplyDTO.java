@@ -16,13 +16,13 @@ public class InvoiceApplyDTO {
      * 申请单ID（关联的业务单据ID）
      */
     @NotBlank(message = "申请单ID不能为空")
-    private String applicationId;
+    private Long applicationId;
 
     /**
      * 企业ID
      */
     @NotBlank(message = "企业ID不能为空")
-    private String enterpriseId;
+    private Long enterpriseId;
 
     /**
      * 申请金额
@@ -75,7 +75,7 @@ public class InvoiceApplyDTO {
     /**
      * 购买方纳税人识别号
      */
-    private String buyerTaxpayerId;
+    private Long buyerTaxpayerId;
 
     /**
      * 购买方地址电话
@@ -122,5 +122,5 @@ public class InvoiceApplyDTO {
     /**
      * 账单ID列表（可选的，关联的账单ID）
      */
-    private List<String> billIds;
+    private List<Long> billIds;
 }

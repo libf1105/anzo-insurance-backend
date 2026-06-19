@@ -2,12 +2,15 @@ package com.anzo.insurance.modules.auth.service.impl;
 
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
+import com.anzo.insurance.common.config.MinioProperties;
+import com.anzo.insurance.common.storage.MinioStorageService;
 import com.anzo.insurance.common.exception.BusinessException;
 import com.anzo.insurance.common.exception.ErrorCode;
 import com.anzo.insurance.modules.auth.dto.AuthResponseDTO;
 import com.anzo.insurance.modules.auth.dto.ChangePasswordDTO;
 import com.anzo.insurance.modules.auth.dto.LoginDTO;
 import com.anzo.insurance.modules.auth.dto.RegisterDTO;
+import com.anzo.insurance.modules.auth.dto.RegisterLicenseUploadResponseDTO;
 import com.anzo.insurance.modules.auth.dto.ResetPasswordDTO;
 import com.anzo.insurance.modules.auth.dto.UpdateProfileDTO;
 import com.anzo.insurance.modules.auth.entity.Enterprise;
@@ -25,9 +28,15 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 认证服务实现类
@@ -42,6 +51,14 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
+    private final MinioStorageService minioStorageService;
+    private final MinioProperties minioProperties;
+
+    private static final long MAX_LICENSE_SIZE = 10 * 1024 * 1024L;
+    private static final List<String> ALLOWED_LICENSE_TYPES = List.of(
+            "image/jpeg", "image/png", "image/webp", "application/pdf"
+    );
+    private static final HttpClient DEBUG_HTTP_CLIENT = HttpClient.newHttpClient();
 
     @Override
     public AuthResponseDTO login(LoginDTO loginDTO) {
@@ -105,21 +122,23 @@ public class AuthServiceImpl implements AuthService {
 
         // 创建企业
         Enterprise enterprise = new Enterprise();
-        enterprise.setId(IdUtil.fastSimpleUUID());
         enterprise.setName(registerDTO.getEnterpriseName());
         enterprise.setCreditCode(registerDTO.getCreditCode());
         enterprise.setContactName(registerDTO.getContactName());
         enterprise.setContactPhone(registerDTO.getContactPhone());
         enterprise.setContactEmail(registerDTO.getContactEmail());
+        enterprise.setLicenseUrl(registerDTO.getLicenseUrl());
         enterprise.setStatus(Enterprise.Status.PENDING_REVIEW.getValue());
         enterprise.setBalance(BigDecimal.ZERO);
+        enterprise.setFrozenBalance(BigDecimal.ZERO);
+        enterprise.setTotalRecharged(BigDecimal.ZERO);
+        enterprise.setTotalConsumed(BigDecimal.ZERO);
         enterprise.setCreatedAt(LocalDateTime.now());
 
         enterpriseRepository.insert(enterprise);
 
         // 创建管理员用户
         User user = new User();
-        user.setId(IdUtil.fastSimpleUUID());
         user.setEnterpriseId(enterprise.getId());
         user.setUsername(registerDTO.getUsername());
         user.setPasswordHash(passwordEncoder.encode(registerDTO.getPassword()));
@@ -137,6 +156,33 @@ public class AuthServiceImpl implements AuthService {
         String refreshToken = jwtService.generateRefreshToken(user);
 
         return buildAuthResponse(user, enterprise, token, refreshToken);
+    }
+
+    @Override
+    public RegisterLicenseUploadResponseDTO uploadRegisterLicense(MultipartFile file) {
+        validateRegisterLicense(file);
+
+        String originalFilename = file.getOriginalFilename();
+        String extension = originalFilename != null && originalFilename.contains(".")
+                ? originalFilename.substring(originalFilename.lastIndexOf('.'))
+                : "";
+        String objectKey = "register/licenses/" + LocalDateTime.now().getYear()
+                + "/" + String.format("%02d", LocalDateTime.now().getMonthValue())
+                + "/" + IdUtil.fastSimpleUUID() + extension;
+        String fileUrl = minioStorageService.upload(
+                file,
+                minioProperties.getBucket().getEnterprise(),
+                objectKey
+        );
+
+        return RegisterLicenseUploadResponseDTO.builder()
+                .fileName(objectKey.substring(objectKey.lastIndexOf('/') + 1))
+                .originalName(originalFilename)
+                .fileUrl(fileUrl)
+                .objectKey(objectKey)
+                .fileSize(file.getSize())
+                .mimeType(file.getContentType())
+                .build();
     }
 
     @Override
@@ -190,6 +236,14 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthResponseDTO getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        // #region debug-point A:get-current-user-auth
+        sendDebugEvent("A", "pre-fix", "src/main/java/com/anzo/insurance/modules/auth/service/impl/AuthServiceImpl.java:237",
+                "[DEBUG] getCurrentUser authentication snapshot",
+                "{\"authenticated\":" + (authentication != null && authentication.isAuthenticated())
+                        + ",\"principalType\":\"" + safeJson(authentication == null || authentication.getPrincipal() == null
+                        ? "null" : authentication.getPrincipal().getClass().getName())
+                        + "\",\"name\":\"" + safeJson(authentication == null ? null : authentication.getName()) + "\"}");
+        // #endregion
         
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new BusinessException(ErrorCode.UNAUTHORIZED.getCode(), "用户未登录");
@@ -198,6 +252,12 @@ public class AuthServiceImpl implements AuthService {
         String username = authentication.getName();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND.getCode(), "用户不存在"));
+        // #region debug-point A:get-current-user-result
+        sendDebugEvent("A", "pre-fix", "src/main/java/com/anzo/insurance/modules/auth/service/impl/AuthServiceImpl.java:248",
+                "[DEBUG] getCurrentUser user resolved",
+                "{\"username\":\"" + safeJson(username) + "\",\"userId\":" + user.getId()
+                        + ",\"enterpriseId\":" + user.getEnterpriseId() + "}");
+        // #endregion
 
         // 获取企业信息
         Enterprise enterprise = enterpriseRepository.selectById(user.getEnterpriseId());
@@ -206,6 +266,34 @@ public class AuthServiceImpl implements AuthService {
         }
 
         return buildAuthResponse(user, enterprise, null, null);
+    }
+
+    private void sendDebugEvent(String hypothesisId, String runId, String location, String msg, String dataJson) {
+        try {
+            String body = "{"
+                    + "\"sessionId\":\"user-not-found-logout\","
+                    + "\"runId\":\"" + runId + "\","
+                    + "\"hypothesisId\":\"" + hypothesisId + "\","
+                    + "\"location\":\"" + location + "\","
+                    + "\"msg\":\"" + msg + "\","
+                    + "\"data\":" + dataJson + ","
+                    + "\"ts\":" + System.currentTimeMillis()
+                    + "}";
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("http://127.0.0.1:7777/event"))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(body))
+                    .build();
+            DEBUG_HTTP_CLIENT.sendAsync(request, HttpResponse.BodyHandlers.discarding());
+        } catch (Exception ignored) {
+        }
+    }
+
+    private String safeJson(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
     @Override
@@ -297,5 +385,18 @@ public class AuthServiceImpl implements AuthService {
                         .contactPhone(enterprise.getContactPhone())
                         .build())
                 .build();
+    }
+
+    private void validateRegisterLicense(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new BusinessException(ErrorCode.PARAM_ERROR.getCode(), "营业执照文件不能为空");
+        }
+        if (file.getSize() > MAX_LICENSE_SIZE) {
+            throw new BusinessException(ErrorCode.FILE_TOO_LARGE.getCode(), "营业执照文件大小不能超过10MB");
+        }
+        String contentType = file.getContentType();
+        if (contentType == null || !ALLOWED_LICENSE_TYPES.contains(contentType)) {
+            throw new BusinessException(ErrorCode.FILE_TYPE_NOT_SUPPORTED.getCode(), "营业执照仅支持 JPG、PNG、WEBP、PDF");
+        }
     }
 }

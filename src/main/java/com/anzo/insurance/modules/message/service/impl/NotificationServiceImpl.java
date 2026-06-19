@@ -80,7 +80,7 @@ public class NotificationServiceImpl implements NotificationService {
         // 如果需要发送给特定用户
         if (notificationDTO.getUserIds() != null && !notificationDTO.getUserIds().isEmpty()) {
             // 为每个用户创建通知
-            for (String userId : notificationDTO.getUserIds()) {
+            for (Long userId : notificationDTO.getUserIds()) {
                 User targetUser = userRepository.selectById(userId);
                 if (targetUser != null && targetUser.getEnterpriseId().equals(enterprise.getId())) {
                     Notification userNotification = new Notification();
@@ -102,7 +102,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public NotificationDTO getNotificationById(String notificationId) {
+    public NotificationDTO getNotificationById(Long notificationId) {
         Notification notification = notificationRepository.selectById(notificationId);
         if (notification == null || notification.getDeleted()) {
             throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND.getCode(), "通知不存在");
@@ -115,7 +115,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public List<NotificationDTO> getUserNotifications(String userId) {
+    public List<NotificationDTO> getUserNotifications(Long userId) {
         checkUserAccessPermission(userId);
         
         List<Notification> notifications = notificationRepository.findByUserId(userId, 100);
@@ -126,7 +126,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public List<NotificationDTO> getEnterpriseNotifications(String enterpriseId) {
+    public List<NotificationDTO> getEnterpriseNotifications(Long enterpriseId) {
         checkEnterpriseAccessPermission(enterpriseId);
         
         List<Notification> notifications = notificationRepository.findByEnterpriseId(enterpriseId);
@@ -157,7 +157,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void markAsRead(String notificationId) {
+    public void markAsRead(Long notificationId) {
         Notification notification = notificationRepository.selectById(notificationId);
         if (notification == null || notification.getDeleted()) {
             throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND.getCode(), "通知不存在");
@@ -174,7 +174,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void markAllAsRead(String userId) {
+    public void markAllAsRead(Long userId) {
         checkUserAccessPermission(userId);
         
         int updated = notificationRepository.markAllAsReadByUserId(userId, LocalDateTime.now());
@@ -183,7 +183,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void markAllAsReadByEnterprise(String enterpriseId) {
+    public void markAllAsReadByEnterprise(Long enterpriseId) {
         checkEnterpriseAccessPermission(enterpriseId);
         
         int updated = notificationRepository.markAllAsReadByEnterpriseId(enterpriseId, LocalDateTime.now());
@@ -192,7 +192,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void deleteNotification(String notificationId) {
+    public void deleteNotification(Long notificationId) {
         Notification notification = notificationRepository.selectById(notificationId);
         if (notification == null || notification.getDeleted()) {
             throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND.getCode(), "通知不存在");
@@ -210,8 +210,8 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void batchDeleteNotifications(List<String> notificationIds) {
-        for (String notificationId : notificationIds) {
+    public void batchDeleteNotifications(List<Long> notificationIds) {
+        for (Long notificationId : notificationIds) {
             try {
                 deleteNotification(notificationId);
             } catch (Exception e) {
@@ -221,14 +221,14 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public Integer getUnreadCount(String userId) {
+    public Integer getUnreadCount(Long userId) {
         checkUserAccessPermission(userId);
         
         return notificationRepository.getUnreadCountByUserId(userId, LocalDateTime.now());
     }
 
     @Override
-    public Integer getEnterpriseUnreadCount(String enterpriseId) {
+    public Integer getEnterpriseUnreadCount(Long enterpriseId) {
         checkEnterpriseAccessPermission(enterpriseId);
         
         return notificationRepository.getUnreadCountByEnterpriseId(enterpriseId, LocalDateTime.now());
@@ -236,7 +236,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void sendSystemNotification(String title, String content, String enterpriseId, List<String> userIds) {
+    public void sendSystemNotification(String title, String content, Long enterpriseId, List<Long> userIds) {
         // 获取当前用户
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User currentUser = userRepository.findByUsername(username)
@@ -261,13 +261,13 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void sendBalanceNotification(String enterpriseId, String userId, String changeType, 
+    public void sendBalanceNotification(Long enterpriseId, Long userId, String changeType, 
                                        String amount, String balanceAfter, String remark) {
         String title = "余额变动通知";
         String content = String.format("您的账户发生%s：%s元，当前余额：%s元。%s", 
                 getChangeTypeText(changeType), amount, balanceAfter, remark != null ? "备注：" + remark : "");
         
-        List<String> userIds = userId != null ? List.of(userId) : null;
+        List<Long> userIds = userId != null ? List.of(userId) : null;
         
         NotificationDTO notificationDTO = new NotificationDTO();
         notificationDTO.setTitle(title);
@@ -284,14 +284,14 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void sendReviewNotification(String enterpriseId, String userId, String reviewType,
+    public void sendReviewNotification(Long enterpriseId, Long userId, String reviewType,
                                       String reviewResult, String targetName, String remark) {
         String title = "审核结果通知";
         String resultText = "通过".equals(reviewResult) ? "已通过" : "未通过";
         String content = String.format("您的%s审核%s。审核对象：%s。%s", 
                 reviewType, resultText, targetName, remark != null ? "备注：" + remark : "");
         
-        List<String> userIds = userId != null ? List.of(userId) : null;
+        List<Long> userIds = userId != null ? List.of(userId) : null;
         
         NotificationDTO notificationDTO = new NotificationDTO();
         notificationDTO.setTitle(title);
@@ -308,13 +308,13 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void sendWarningNotification(String enterpriseId, String userId, String warningType,
+    public void sendWarningNotification(Long enterpriseId, Long userId, String warningType,
                                        String warningContent, String actionRequired) {
         String title = "系统预警通知";
         String content = String.format("【%s】%s。需要采取的措施：%s", 
                 warningType, warningContent, actionRequired);
         
-        List<String> userIds = userId != null ? List.of(userId) : null;
+        List<Long> userIds = userId != null ? List.of(userId) : null;
         
         NotificationDTO notificationDTO = new NotificationDTO();
         notificationDTO.setTitle(title);
@@ -330,7 +330,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public List<NotificationDTO> getLatestNotifications(String userId, int limit) {
+    public List<NotificationDTO> getLatestNotifications(Long userId, int limit) {
         checkUserAccessPermission(userId);
         
         List<Notification> notifications = notificationRepository.findLatestByUserId(userId, limit, LocalDateTime.now());
@@ -341,7 +341,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public List<NotificationDTO> getEnterpriseLatestNotifications(String enterpriseId, int limit) {
+    public List<NotificationDTO> getEnterpriseLatestNotifications(Long enterpriseId, int limit) {
         checkEnterpriseAccessPermission(enterpriseId);
         
         List<Notification> notifications = notificationRepository.findByEnterpriseIdWithPriority(enterpriseId, LocalDateTime.now());
@@ -360,7 +360,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public NotificationStatistics getNotificationStatistics(String userId) {
+    public NotificationStatistics getNotificationStatistics(Long userId) {
         checkUserAccessPermission(userId);
         
         NotificationRepository.NotificationStatistics stats = 
@@ -445,7 +445,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public NotificationStatistics getEnterpriseNotificationStatistics(String enterpriseId) {
+    public NotificationStatistics getEnterpriseNotificationStatistics(Long enterpriseId) {
         checkEnterpriseAccessPermission(enterpriseId);
         
         // 简化实现：获取企业所有用户的统计信息总和
@@ -536,7 +536,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void sendPolicyNotification(String enterpriseId, String userId, String policyId,
+    public void sendPolicyNotification(Long enterpriseId, Long userId, Long policyId,
                                       String notificationType, String content) {
         String title = "保单通知";
         
@@ -557,7 +557,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void sendClaimNotification(String enterpriseId, String userId, String claimId,
+    public void sendClaimNotification(Long enterpriseId, Long userId, Long claimId,
                                      String notificationType, String content) {
         String title = "理赔通知";
         
@@ -578,7 +578,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void sendEnterpriseStatusNotification(String enterpriseId, String oldStatus, 
+    public void sendEnterpriseStatusNotification(Long enterpriseId, String oldStatus, 
                                                 String newStatus, String remark) {
         String title = "企业状态变更通知";
         String content = String.format("您的企业状态已从【%s】变更为【%s】。%s", 
@@ -599,8 +599,8 @@ public class NotificationServiceImpl implements NotificationService {
 
     // ============ 私有方法 ============
 
-    private Enterprise getEnterprise(String requestEnterpriseId, String currentUserEnterpriseId) {
-        if (StrUtil.isNotBlank(requestEnterpriseId)) {
+    private Enterprise getEnterprise(Long requestEnterpriseId, Long currentUserEnterpriseId) {
+        if (requestEnterpriseId != null) {
             Enterprise enterprise = enterpriseRepository.selectById(requestEnterpriseId);
             if (enterprise == null) {
                 throw new BusinessException(ErrorCode.ENTERPRISE_NOT_FOUND.getCode(), "企业不存在");
@@ -701,11 +701,11 @@ public class NotificationServiceImpl implements NotificationService {
             queryWrapper.eq(Notification::getDeleted, false);
         }
         
-        if (StrUtil.isNotBlank(queryDTO.getEnterpriseId())) {
+        if (queryDTO.getEnterpriseId() != null) {
             queryWrapper.eq(Notification::getEnterpriseId, queryDTO.getEnterpriseId());
         }
         
-        if (StrUtil.isNotBlank(queryDTO.getUserId())) {
+        if (queryDTO.getUserId() != null) {
             queryWrapper.eq(Notification::getUserId, queryDTO.getUserId());
         }
         
@@ -763,7 +763,7 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
-    private void checkUserAccessPermission(String targetUserId) {
+    private void checkUserAccessPermission(Long targetUserId) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND.getCode(), "用户不存在"));
@@ -779,7 +779,7 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
-    private void checkEnterpriseAccessPermission(String targetEnterpriseId) {
+    private void checkEnterpriseAccessPermission(Long targetEnterpriseId) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND.getCode(), "用户不存在"));

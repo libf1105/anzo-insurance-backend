@@ -20,7 +20,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
-import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,7 +39,7 @@ public class WalletServiceImpl extends ServiceImpl<WalletMapper, Wallet> impleme
     private TransactionRecordMapper transactionRecordMapper;
 
     @Override
-    public WalletDTO getWallet(String id) {
+    public WalletDTO getWallet(Long id) {
         Wallet wallet = baseMapper.selectById(id);
         if (wallet == null) {
             throw new BusinessException("钱包不存在");
@@ -49,7 +48,7 @@ public class WalletServiceImpl extends ServiceImpl<WalletMapper, Wallet> impleme
     }
 
     @Override
-    public WalletDTO getWalletByEnterpriseId(String enterpriseId) {
+    public WalletDTO getWalletByEnterpriseId(Long enterpriseId) {
         Wallet wallet = baseMapper.selectByEnterpriseId(enterpriseId);
         if (wallet == null) {
             return initWallet(enterpriseId, null);
@@ -62,7 +61,7 @@ public class WalletServiceImpl extends ServiceImpl<WalletMapper, Wallet> impleme
         Page<Wallet> page = new Page<>(queryDTO.getPageNum(), queryDTO.getPageSize());
         LambdaQueryWrapper<Wallet> queryWrapper = new LambdaQueryWrapper<>();
 
-        if (isNotBlank(queryDTO.getEnterpriseId())) {
+        if (queryDTO.getEnterpriseId() != null) {
             queryWrapper.eq(Wallet::getEnterpriseId, queryDTO.getEnterpriseId());
         }
         if (queryDTO.getStatus() != null) {
@@ -99,14 +98,13 @@ public class WalletServiceImpl extends ServiceImpl<WalletMapper, Wallet> impleme
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public WalletDTO initWallet(String enterpriseId, String enterpriseName) {
+    public WalletDTO initWallet(Long enterpriseId, String enterpriseName) {
         Wallet existingWallet = baseMapper.selectByEnterpriseId(enterpriseId);
         if (existingWallet != null) {
             return convertToDTO(existingWallet);
         }
 
         Wallet wallet = new Wallet();
-        wallet.setId(generateId());
         wallet.setEnterpriseId(enterpriseId);
         wallet.setAvailableBalance(BigDecimal.ZERO);
         wallet.setFrozenBalance(BigDecimal.ZERO);
@@ -140,40 +138,40 @@ public class WalletServiceImpl extends ServiceImpl<WalletMapper, Wallet> impleme
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public WalletDTO freezeAmount(String walletId, BigDecimal amount, String businessId, String businessDesc, String remark) {
+    public WalletDTO freezeAmount(Long walletId, BigDecimal amount, Long businessId, String businessDesc, String remark) {
         return applyWalletOperation(walletId, amount, OP_FREEZE, 1, businessId, businessDesc, remark, null, null, false);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public WalletDTO unfreezeAmount(String walletId, BigDecimal amount, String businessId, String businessDesc, String remark) {
+    public WalletDTO unfreezeAmount(Long walletId, BigDecimal amount, Long businessId, String businessDesc, String remark) {
         return applyWalletOperation(walletId, amount, OP_UNFREEZE, 1, businessId, businessDesc, remark, null, null, false);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public WalletDTO recharge(String walletId, BigDecimal amount, Integer paymentMethod, String paymentNo, String remark) {
+    public WalletDTO recharge(Long walletId, BigDecimal amount, Integer paymentMethod, String paymentNo, String remark) {
         return applyWalletOperation(walletId, amount, OP_RECHARGE, 4, null, "账户充值", remark, paymentMethod, paymentNo, false);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public WalletDTO deduct(String walletId, BigDecimal amount, String businessId, String businessDesc, String remark) {
+    public WalletDTO deduct(Long walletId, BigDecimal amount, Long businessId, String businessDesc, String remark) {
         return applyWalletOperation(walletId, amount, OP_DEDUCT, 1, businessId, businessDesc, remark, 3, null, false);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public WalletDTO refund(String walletId, BigDecimal amount, String businessId, String businessDesc, String remark) {
+    public WalletDTO refund(Long walletId, BigDecimal amount, Long businessId, String businessDesc, String remark) {
         return applyWalletOperation(walletId, amount, OP_RECHARGE, 2, businessId, businessDesc, remark, null, null, true);
     }
 
     private WalletDTO applyWalletOperation(
-            String walletId,
+            Long walletId,
             BigDecimal amount,
             Integer operationType,
             Integer businessType,
-            String businessId,
+            Long businessId,
             String businessDesc,
             String remark,
             Integer paymentMethod,
@@ -272,7 +270,7 @@ public class WalletServiceImpl extends ServiceImpl<WalletMapper, Wallet> impleme
             BigDecimal amount,
             Integer transactionType,
             Integer businessType,
-            String businessId,
+            Long businessId,
             String businessDesc,
             String remark,
             Integer paymentMethod,
@@ -281,7 +279,6 @@ public class WalletServiceImpl extends ServiceImpl<WalletMapper, Wallet> impleme
             BigDecimal beforeFrozen
     ) {
         TransactionRecord record = new TransactionRecord();
-        record.setId(generateId());
         record.setTransactionNo(generateTransactionNo());
         record.setEnterpriseId(wallet.getEnterpriseId());
         record.setTransactionType(transactionType);
@@ -324,8 +321,8 @@ public class WalletServiceImpl extends ServiceImpl<WalletMapper, Wallet> impleme
         return dto;
     }
 
-    private LocalDateTime getLastTransactionTime(String enterpriseId) {
-        if (!isNotBlank(enterpriseId)) {
+    private LocalDateTime getLastTransactionTime(Long enterpriseId) {
+        if (enterpriseId == null) {
             return null;
         }
         LambdaQueryWrapper<TransactionRecord> queryWrapper = new LambdaQueryWrapper<TransactionRecord>()
@@ -410,10 +407,6 @@ public class WalletServiceImpl extends ServiceImpl<WalletMapper, Wallet> impleme
 
     private boolean isNotBlank(String value) {
         return value != null && !value.trim().isEmpty();
-    }
-
-    private String generateId() {
-        return UUID.randomUUID().toString().replace("-", "");
     }
 
     private String generateTransactionNo() {

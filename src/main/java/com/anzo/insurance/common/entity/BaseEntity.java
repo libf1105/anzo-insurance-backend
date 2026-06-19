@@ -18,8 +18,8 @@ public abstract class BaseEntity implements Serializable {
     /**
      * 主键ID
      */
-    @TableId(type = IdType.ASSIGN_UUID)
-    private String id;
+    @TableId(type = IdType.AUTO)
+    private Long id;
 
     /**
      * 创建时间

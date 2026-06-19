@@ -20,7 +20,7 @@ public class ClaimMaterial extends BaseEntity {
      * 理赔ID
      */
     @TableField("claim_id")
-    private String claimId;
+    private Long claimId;
 
     /**
      * 材料类型
@@ -68,7 +68,7 @@ public class ClaimMaterial extends BaseEntity {
      * 上传人用户ID
      */
     @TableField("upload_user_id")
-    private String uploadUserId;
+    private Long uploadUserId;
 
     /**
      * 上传人用户名
@@ -98,7 +98,7 @@ public class ClaimMaterial extends BaseEntity {
      * 审核人用户ID
      */
     @TableField("approve_user_id")
-    private String approveUserId;
+    private Long approveUserId;
 
     /**
      * 审核人用户名

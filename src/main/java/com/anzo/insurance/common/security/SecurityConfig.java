@@ -51,6 +51,7 @@ public class SecurityConfig {
                                 // 认证相关
                                 "/auth/login",
                                 "/auth/register",
+                                "/auth/register/license",
                                 "/auth/refresh-token",
                                 "/auth/reset-password/**",
                                 "/auth/verification-code/**",

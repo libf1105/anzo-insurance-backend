@@ -29,13 +29,13 @@ public interface BillMapper extends BaseMapper<Bill> {
      * 获取企业账单统计
      */
     Map<String, Object> selectEnterpriseBillStats(
-        @Param("enterpriseId") String enterpriseId,
+        @Param("enterpriseId") Long enterpriseId,
         @Param("billingPeriod") String billingPeriod);
 
     /**
      * 按账单状态统计
      */
     List<Map<String, Object>> selectBillStatusStats(
-        @Param("enterpriseId") String enterpriseId,
+        @Param("enterpriseId") Long enterpriseId,
         @Param("billingPeriod") String billingPeriod);
 }

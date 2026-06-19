@@ -25,7 +25,6 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,7 +38,7 @@ public class InvoiceServiceImpl extends ServiceImpl<InvoiceMapper, Invoice> impl
     private BillService billService;
 
     @Override
-    public InvoiceDTO getInvoice(String id) {
+    public InvoiceDTO getInvoice(Long id) {
         Invoice invoice = baseMapper.selectById(id);
         if (invoice == null) {
             throw new BusinessException("发票不存在");
@@ -52,7 +51,7 @@ public class InvoiceServiceImpl extends ServiceImpl<InvoiceMapper, Invoice> impl
         Page<Invoice> page = new Page<>(queryDTO.getPageNum(), queryDTO.getPageSize());
         LambdaQueryWrapper<Invoice> queryWrapper = new LambdaQueryWrapper<>();
 
-        if (isNotBlank(queryDTO.getEnterpriseId())) {
+        if (queryDTO.getEnterpriseId() != null) {
             queryWrapper.eq(Invoice::getEnterpriseId, queryDTO.getEnterpriseId());
         }
         if (isNotBlank(queryDTO.getInvoiceNo())) {
@@ -123,7 +122,6 @@ public class InvoiceServiceImpl extends ServiceImpl<InvoiceMapper, Invoice> impl
         }
 
         Invoice invoice = new Invoice();
-        invoice.setId(generateId());
         invoice.setInvoiceNo(generateInvoiceNo());
         invoice.setEnterpriseId(applyDTO.getEnterpriseId());
         invoice.setInvoiceType(applyDTO.getInvoiceType());
@@ -208,7 +206,7 @@ public class InvoiceServiceImpl extends ServiceImpl<InvoiceMapper, Invoice> impl
     }
 
     @Override
-    public void updateInvoiceStatus(String id, Integer status, String remark) {
+    public void updateInvoiceStatus(Long id, Integer status, String remark) {
         Invoice invoice = requireInvoice(id);
         invoice.setStatus(mapDtoStatusToEntity(status));
         appendRemark(invoice, remark);
@@ -216,7 +214,7 @@ public class InvoiceServiceImpl extends ServiceImpl<InvoiceMapper, Invoice> impl
     }
 
     @Override
-    public Map<String, Object> getEnterpriseInvoiceStats(String enterpriseId, String startTime, String endTime) {
+    public Map<String, Object> getEnterpriseInvoiceStats(Long enterpriseId, String startTime, String endTime) {
         Map<String, Object> stats = new HashMap<>();
         LambdaQueryWrapper<Invoice> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Invoice::getEnterpriseId, enterpriseId);
@@ -261,8 +259,8 @@ public class InvoiceServiceImpl extends ServiceImpl<InvoiceMapper, Invoice> impl
     }
 
     @Override
-    public void batchIssueInvoices(List<String> invoiceIds) {
-        for (String invoiceId : invoiceIds) {
+    public void batchIssueInvoices(List<Long> invoiceIds) {
+        for (Long invoiceId : invoiceIds) {
             Invoice invoice = baseMapper.selectById(invoiceId);
             if (invoice != null && !invoice.isInvoiced() && !invoice.isCancelled()) {
                 InvoiceUpdateDTO updateDTO = new InvoiceUpdateDTO();
@@ -275,7 +273,7 @@ public class InvoiceServiceImpl extends ServiceImpl<InvoiceMapper, Invoice> impl
     }
 
     @Override
-    public String downloadInvoiceFile(String id) {
+    public String downloadInvoiceFile(Long id) {
         return "/api/finance/invoice/" + id + "/download";
     }
 
@@ -313,7 +311,7 @@ public class InvoiceServiceImpl extends ServiceImpl<InvoiceMapper, Invoice> impl
     }
 
     @Override
-    public List<BillDTO> queryAvailableBillsForInvoice(String enterpriseId) {
+    public List<BillDTO> queryAvailableBillsForInvoice(Long enterpriseId) {
         BillQueryDTO queryDTO = new BillQueryDTO();
         queryDTO.setEnterpriseId(enterpriseId);
         queryDTO.setStatus(3);
@@ -368,7 +366,7 @@ public class InvoiceServiceImpl extends ServiceImpl<InvoiceMapper, Invoice> impl
         return dto;
     }
 
-    private Invoice requireInvoice(String id) {
+    private Invoice requireInvoice(Long id) {
         Invoice invoice = baseMapper.selectById(id);
         if (invoice == null) {
             throw new BusinessException("发票不存在");
@@ -555,10 +553,6 @@ public class InvoiceServiceImpl extends ServiceImpl<InvoiceMapper, Invoice> impl
 
     private boolean isNotBlank(String value) {
         return value != null && !value.trim().isEmpty();
-    }
-
-    private String generateId() {
-        return UUID.randomUUID().toString().replace("-", "");
     }
 
     private String generateInvoiceNo() {

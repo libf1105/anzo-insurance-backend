@@ -37,7 +37,7 @@ public class JwtUtil {
     /**
      * 生成Access Token
      */
-    public String generateAccessToken(String userId, String enterpriseId, String username, String role) {
+    public String generateAccessToken(Long userId, Long enterpriseId, String username, String role) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);
         claims.put("enterpriseId", enterpriseId);
@@ -51,7 +51,7 @@ public class JwtUtil {
     /**
      * 生成Refresh Token
      */
-    public String generateRefreshToken(String userId) {
+    public String generateRefreshToken(Long userId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);
         claims.put("type", "REFRESH");
@@ -98,17 +98,17 @@ public class JwtUtil {
     /**
      * 从Token中获取用户ID
      */
-    public String getUserIdFromToken(String token) {
+    public Long getUserIdFromToken(String token) {
         Claims claims = parseToken(token);
-        return claims.get("userId", String.class);
+        return claims.get("userId", Long.class);
     }
     
     /**
      * 从Token中获取企业ID
      */
-    public String getEnterpriseIdFromToken(String token) {
+    public Long getEnterpriseIdFromToken(String token) {
         Claims claims = parseToken(token);
-        return claims.get("enterpriseId", String.class);
+        return claims.get("enterpriseId", Long.class);
     }
     
     /**

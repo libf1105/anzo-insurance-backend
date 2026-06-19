@@ -27,19 +27,19 @@ public class Policy extends BaseEntity {
      * 投保申请ID
      */
     @TableField("application_id")
-    private String applicationId;
+    private Long applicationId;
 
     /**
      * 企业ID
      */
     @TableField("enterprise_id")
-    private String enterpriseId;
+    private Long enterpriseId;
 
     /**
      * 投保人用户ID
      */
     @TableField("applicant_user_id")
-    private String applicantUserId;
+    private Long applicantUserId;
 
     /**
      * 保单状态
@@ -52,7 +52,7 @@ public class Policy extends BaseEntity {
      * 保险公司ID
      */
     @TableField("insurer_id")
-    private String insurerId;
+    private Long insurerId;
 
     /**
      * 保险公司名称

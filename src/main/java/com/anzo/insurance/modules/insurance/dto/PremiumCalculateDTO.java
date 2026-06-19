@@ -41,11 +41,11 @@ public class PremiumCalculateDTO {
     private String currency;
     
     @Schema(description = "保司ID，不传则使用默认保司")
-    private String insurerId;
+    private Long insurerId;
     
     @Schema(description = "加成比例", example = "1.10")
     private BigDecimal additionRatio = BigDecimal.valueOf(1.10);
     
     @Schema(description = "投保申请ID，用于续写时试算")
-    private String applicationId;
+    private Long applicationId;
 }

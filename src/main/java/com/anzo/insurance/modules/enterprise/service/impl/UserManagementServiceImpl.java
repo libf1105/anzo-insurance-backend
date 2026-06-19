@@ -38,7 +38,7 @@ public class UserManagementServiceImpl implements UserManagementService {
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    public org.springframework.data.domain.Page<User> getEnterpriseUsers(String enterpriseId, Pageable pageable) {
+    public org.springframework.data.domain.Page<User> getEnterpriseUsers(Long enterpriseId, Pageable pageable) {
         // 验证企业存在
         Enterprise enterprise = enterpriseRepository.selectById(enterpriseId);
         if (enterprise == null) {
@@ -65,7 +65,7 @@ public class UserManagementServiceImpl implements UserManagementService {
     }
 
     @Override
-    public org.springframework.data.domain.Page<User> searchEnterpriseUsers(String enterpriseId, String keyword, Pageable pageable) {
+    public org.springframework.data.domain.Page<User> searchEnterpriseUsers(Long enterpriseId, String keyword, Pageable pageable) {
         // 验证企业存在
         Enterprise enterprise = enterpriseRepository.selectById(enterpriseId);
         if (enterprise == null) {
@@ -102,7 +102,7 @@ public class UserManagementServiceImpl implements UserManagementService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public User createEnterpriseUser(String enterpriseId, UserCreateDTO createDTO) {
+    public User createEnterpriseUser(Long enterpriseId, UserCreateDTO createDTO) {
         // 验证企业存在
         Enterprise enterprise = enterpriseRepository.selectById(enterpriseId);
         if (enterprise == null) {
@@ -126,7 +126,6 @@ public class UserManagementServiceImpl implements UserManagementService {
 
         // 创建用户
         User user = new User();
-        user.setId(IdUtil.fastSimpleUUID());
         user.setEnterpriseId(enterpriseId);
         user.setUsername(createDTO.getUsername());
         user.setPasswordHash(passwordEncoder.encode(createDTO.getPassword()));
@@ -147,7 +146,7 @@ public class UserManagementServiceImpl implements UserManagementService {
     }
 
     @Override
-    public User getUser(String enterpriseId, String userId) {
+    public User getUser(Long enterpriseId, Long userId) {
         // 验证企业存在
         Enterprise enterprise = enterpriseRepository.selectById(enterpriseId);
         if (enterprise == null) {
@@ -164,7 +163,7 @@ public class UserManagementServiceImpl implements UserManagementService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void updateUser(String enterpriseId, String userId, UserUpdateDTO updateDTO) {
+    public void updateUser(Long enterpriseId, Long userId, UserUpdateDTO updateDTO) {
         // 验证企业存在
         Enterprise enterprise = enterpriseRepository.selectById(enterpriseId);
         if (enterprise == null) {
@@ -215,7 +214,7 @@ public class UserManagementServiceImpl implements UserManagementService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void deleteUser(String enterpriseId, String userId) {
+    public void deleteUser(Long enterpriseId, Long userId) {
         // 验证企业存在
         Enterprise enterprise = enterpriseRepository.selectById(enterpriseId);
         if (enterprise == null) {
@@ -250,17 +249,17 @@ public class UserManagementServiceImpl implements UserManagementService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void enableUser(String enterpriseId, String userId) {
+    public void enableUser(Long enterpriseId, Long userId) {
         updateUserStatus(enterpriseId, userId, User.Status.ACTIVE.getValue());
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void disableUser(String enterpriseId, String userId) {
+    public void disableUser(Long enterpriseId, Long userId) {
         updateUserStatus(enterpriseId, userId, User.Status.DISABLED.getValue());
     }
 
-    private void updateUserStatus(String enterpriseId, String userId, String status) {
+    private void updateUserStatus(Long enterpriseId, Long userId, String status) {
         User user = getUser(enterpriseId, userId);
         
         // 验证当前用户权限
@@ -285,7 +284,7 @@ public class UserManagementServiceImpl implements UserManagementService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void resetPassword(String enterpriseId, String userId, String newPassword) {
+    public void resetPassword(Long enterpriseId, Long userId, String newPassword) {
         User user = getUser(enterpriseId, userId);
         
         // 验证当前用户权限
@@ -309,13 +308,13 @@ public class UserManagementServiceImpl implements UserManagementService {
     }
 
     @Override
-    public boolean verifyUserPermission(String enterpriseId, String userId) {
+    public boolean verifyUserPermission(Long enterpriseId, Long userId) {
         User user = getUser(enterpriseId, userId);
         return User.Status.ACTIVE.getValue().equals(user.getStatus());
     }
 
     @Override
-    public UserStatistics getUserStatistics(String enterpriseId) {
+    public UserStatistics getUserStatistics(Long enterpriseId) {
         // 验证企业存在
         Enterprise enterprise = enterpriseRepository.selectById(enterpriseId);
         if (enterprise == null) {

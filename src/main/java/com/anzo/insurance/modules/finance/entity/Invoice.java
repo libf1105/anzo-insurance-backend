@@ -28,7 +28,7 @@ public class Invoice extends BaseEntity {
      * 企业ID
      */
     @TableField("enterprise_id")
-    private String enterpriseId;
+    private Long enterpriseId;
 
     /**
      * 发票类型：1-增值税普通发票，2-增值税专用发票，3-电子普通发票，4-电子专用发票
@@ -172,7 +172,7 @@ public class Invoice extends BaseEntity {
      * 审核人用户ID
      */
     @TableField("auditor_user_id")
-    private String auditorUserId;
+    private Long auditorUserId;
 
     /**
      * 审核人用户名
@@ -196,7 +196,7 @@ public class Invoice extends BaseEntity {
      * 作废人用户ID
      */
     @TableField("canceller_user_id")
-    private String cancellerUserId;
+    private Long cancellerUserId;
 
     /**
      * 作废人用户名
@@ -208,13 +208,13 @@ public class Invoice extends BaseEntity {
      * 重开发票ID（被重开的发票ID）
      */
     @TableField("reissue_invoice_id")
-    private String reissueInvoiceId;
+    private Long reissueInvoiceId;
 
     /**
      * 原发票ID（重开的发票对应的原发票）
      */
     @TableField("original_invoice_id")
-    private String originalInvoiceId;
+    private Long originalInvoiceId;
 
     /**
      * 发票文件URL
@@ -244,7 +244,7 @@ public class Invoice extends BaseEntity {
      * 关联业务ID（如保单ID、账单ID）
      */
     @TableField("related_business_id")
-    private String relatedBusinessId;
+    private Long relatedBusinessId;
 
     /**
      * 关联业务描述

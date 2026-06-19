@@ -19,29 +19,29 @@ public interface CustomerMapper extends BaseMapper<Customer> {
      * 根据企业ID查找客户列表
      */
     @Select("SELECT * FROM customer WHERE enterprise_id = #{enterpriseId} AND deleted = false ORDER BY created_at DESC")
-    List<Customer> findByEnterpriseId(@Param("enterpriseId") String enterpriseId);
+    List<Customer> findByEnterpriseId(@Param("enterpriseId") Long enterpriseId);
 
     /**
      * 根据客户名称查找客户（支持模糊查询）
      */
     @Select("SELECT * FROM customer WHERE enterprise_id = #{enterpriseId} AND name LIKE CONCAT('%', #{name}, '%') AND deleted = false ORDER BY created_at DESC")
-    List<Customer> findByName(@Param("enterpriseId") String enterpriseId, @Param("name") String name);
+    List<Customer> findByName(@Param("enterpriseId") Long enterpriseId, @Param("name") String name);
 
     /**
      * 根据信用代码查找客户
      */
     @Select("SELECT * FROM customer WHERE enterprise_id = #{enterpriseId} AND credit_code = #{creditCode} AND deleted = false")
-    Optional<Customer> findByCreditCode(@Param("enterpriseId") String enterpriseId, @Param("creditCode") String creditCode);
+    Optional<Customer> findByCreditCode(@Param("enterpriseId") Long enterpriseId, @Param("creditCode") String creditCode);
 
     /**
      * 检查信用代码是否存在
      */
     @Select("SELECT COUNT(*) > 0 FROM customer WHERE enterprise_id = #{enterpriseId} AND credit_code = #{creditCode} AND deleted = false")
-    boolean existsByCreditCode(@Param("enterpriseId") String enterpriseId, @Param("creditCode") String creditCode);
+    boolean existsByCreditCode(@Param("enterpriseId") Long enterpriseId, @Param("creditCode") String creditCode);
 
     /**
      * 根据状态查找客户
      */
     @Select("SELECT * FROM customer WHERE enterprise_id = #{enterpriseId} AND status = #{status} AND deleted = false ORDER BY created_at DESC")
-    List<Customer> findByStatus(@Param("enterpriseId") String enterpriseId, @Param("status") String status);
+    List<Customer> findByStatus(@Param("enterpriseId") Long enterpriseId, @Param("status") String status);
 }

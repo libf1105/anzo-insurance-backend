@@ -36,7 +36,7 @@ public interface UserRepository extends BaseMapper<User> {
      * 根据企业ID查找用户
      */
     @Select("SELECT * FROM user WHERE enterprise_id = #{enterpriseId} AND deleted = false")
-    Optional<User> findByEnterpriseId(@Param("enterpriseId") String enterpriseId);
+    Optional<User> findByEnterpriseId(@Param("enterpriseId") Long enterpriseId);
     
     /**
      * 根据用户ID查找用户（包含企业信息）
@@ -44,5 +44,5 @@ public interface UserRepository extends BaseMapper<User> {
     @Select("SELECT u.*, e.name as enterprise_name, e.status as enterprise_status " +
             "FROM user u LEFT JOIN enterprise e ON u.enterprise_id = e.id " +
             "WHERE u.id = #{userId} AND u.deleted = false AND e.deleted = false")
-    Optional<User> findUserWithEnterpriseById(@Param("userId") String userId);
+    Optional<User> findUserWithEnterpriseById(@Param("userId") Long userId);
 }

@@ -31,7 +31,7 @@ public class BillController {
     @ApiOperation("获取账单详情")
     @GetMapping("/{id}")
     public ApiResponse<BillDTO> getBillDetail(
-            @ApiParam("账单ID") @PathVariable String id) {
+            @ApiParam("账单ID") @PathVariable Long id) {
         BillDTO billDetail = billService.getBill(id);
         return ApiResponse.success(billDetail);
     }
@@ -46,7 +46,7 @@ public class BillController {
     @ApiOperation("生成月度账单")
     @PostMapping("/generate-monthly")
     public ApiResponse<BillDTO> generateMonthlyBill(
-            @ApiParam("企业ID") @RequestParam String enterpriseId,
+            @ApiParam("企业ID") @RequestParam Long enterpriseId,
             @ApiParam("账单周期（YYYY-MM）") @RequestParam String billingPeriod) {
         BillDTO bill = billService.generateMonthlyBill(enterpriseId, billingPeriod);
         return ApiResponse.success(bill);
@@ -69,7 +69,7 @@ public class BillController {
     @ApiOperation("更新账单状态")
     @PutMapping("/{id}/status")
     public ApiResponse<Void> updateBillStatus(
-            @ApiParam("账单ID") @PathVariable String id,
+            @ApiParam("账单ID") @PathVariable Long id,
             @ApiParam("账单状态（0-待生成，1-待付款，2-付款中，3-已付款，4-已逾期，5-已取消）") @RequestParam Integer status,
             @ApiParam("备注") @RequestParam(required = false) String remark) {
         billService.updateBillStatus(id, status, remark);
@@ -79,7 +79,7 @@ public class BillController {
     @ApiOperation("获取企业账单统计")
     @GetMapping("/stats/{enterpriseId}")
     public ApiResponse<Map<String, Object>> getEnterpriseBillStats(
-            @ApiParam("企业ID") @PathVariable String enterpriseId,
+            @ApiParam("企业ID") @PathVariable Long enterpriseId,
             @ApiParam("账单周期（YYYY-MM）") @RequestParam(required = false) String billingPeriod) {
         Map<String, Object> stats = billService.getEnterpriseBillStats(enterpriseId, billingPeriod);
         return ApiResponse.success(stats);
@@ -96,7 +96,7 @@ public class BillController {
     @ApiOperation("发送账单提醒")
     @PostMapping("/{id}/reminder")
     public ApiResponse<Void> sendBillReminder(
-            @ApiParam("账单ID") @PathVariable String id) {
+            @ApiParam("账单ID") @PathVariable Long id) {
         billService.sendBillReminder(id);
         return ApiResponse.success();
     }
@@ -104,7 +104,7 @@ public class BillController {
     @ApiOperation("下载账单文件")
     @GetMapping("/{id}/download")
     public ApiResponse<String> downloadBillFile(
-            @ApiParam("账单ID") @PathVariable String id) {
+            @ApiParam("账单ID") @PathVariable Long id) {
         String fileUrl = billService.downloadBillFile(id);
         return ApiResponse.success(fileUrl);
     }

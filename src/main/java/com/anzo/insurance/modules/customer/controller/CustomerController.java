@@ -41,7 +41,7 @@ public class CustomerController {
     @PutMapping("/{id}")
     @Operation(summary = "更新客户")
     public ApiResponse<CustomerResponseDTO> updateCustomer(
-            @PathVariable String id,
+            @PathVariable Long id,
             @Valid @RequestBody CustomerUpdateDTO dto) {
         log.info("更新客户: id={}, data={}", id, dto);
         CustomerResponseDTO result = customerService.updateCustomer(id, dto);
@@ -50,7 +50,7 @@ public class CustomerController {
     
     @GetMapping("/{id}")
     @Operation(summary = "获取客户详情")
-    public ApiResponse<CustomerResponseDTO> getCustomer(@PathVariable String id) {
+    public ApiResponse<CustomerResponseDTO> getCustomer(@PathVariable Long id) {
         log.info("获取客户详情: id={}", id);
         CustomerResponseDTO result = customerService.getCustomer(id);
         return ApiResponse.success(result);
@@ -58,7 +58,7 @@ public class CustomerController {
     
     @DeleteMapping("/{id}")
     @Operation(summary = "删除客户")
-    public ApiResponse<Void> deleteCustomer(@PathVariable String id) {
+    public ApiResponse<Void> deleteCustomer(@PathVariable Long id) {
         log.info("删除客户: id={}", id);
         customerService.deleteCustomer(id);
         return ApiResponse.success();
@@ -66,7 +66,7 @@ public class CustomerController {
     
     @PostMapping("/batch-delete")
     @Operation(summary = "批量删除客户")
-    public ApiResponse<Void> batchDeleteCustomers(@RequestBody List<String> ids) {
+    public ApiResponse<Void> batchDeleteCustomers(@RequestBody List<Long> ids) {
         log.info("批量删除客户: ids={}", ids);
         customerService.batchDeleteCustomers(ids);
         return ApiResponse.success();
@@ -103,7 +103,7 @@ public class CustomerController {
     @GetMapping("/enterprise/{enterpriseId}")
     @Operation(summary = "根据企业ID查询客户列表")
     public ApiResponse<List<CustomerResponseDTO>> getCustomersByEnterprise(
-            @PathVariable String enterpriseId) {
+            @PathVariable Long enterpriseId) {
         log.info("根据企业ID查询客户: enterpriseId={}", enterpriseId);
         List<CustomerResponseDTO> result = customerService.getCustomersByEnterprise(enterpriseId);
         return ApiResponse.success(result);
@@ -112,7 +112,7 @@ public class CustomerController {
     @PutMapping("/{id}/status")
     @Operation(summary = "启用/禁用客户")
     public ApiResponse<CustomerResponseDTO> toggleCustomerStatus(
-            @PathVariable String id,
+            @PathVariable Long id,
             @Parameter(description = "状态: ACTIVE/DISABLED") @RequestParam String status) {
         log.info("修改客户状态: id={}, status={}", id, status);
         CustomerResponseDTO result = customerService.toggleCustomerStatus(id, status);

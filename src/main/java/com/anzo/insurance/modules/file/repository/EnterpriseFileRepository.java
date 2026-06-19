@@ -20,7 +20,7 @@ public interface EnterpriseFileRepository extends BaseMapper<EnterpriseFile> {
     @Select("SELECT * FROM enterprise_files WHERE enterprise_id = #{enterpriseId} " +
             "AND file_type = #{fileType} AND status = 'ACTIVE' AND deleted = false " +
             "ORDER BY created_at DESC")
-    List<EnterpriseFile> findByEnterpriseIdAndType(@Param("enterpriseId") String enterpriseId,
+    List<EnterpriseFile> findByEnterpriseIdAndType(@Param("enterpriseId") Long enterpriseId,
                                                     @Param("fileType") String fileType);
 
     /**
@@ -28,14 +28,14 @@ public interface EnterpriseFileRepository extends BaseMapper<EnterpriseFile> {
      */
     @Select("SELECT * FROM enterprise_files WHERE enterprise_id = #{enterpriseId} " +
             "AND status = 'ACTIVE' AND deleted = false ORDER BY created_at DESC")
-    List<EnterpriseFile> findByEnterpriseId(@Param("enterpriseId") String enterpriseId);
+    List<EnterpriseFile> findByEnterpriseId(@Param("enterpriseId") Long enterpriseId);
 
     /**
      * 根据MD5值查询文件
      */
     @Select("SELECT * FROM enterprise_files WHERE md5 = #{md5} " +
             "AND enterprise_id = #{enterpriseId} AND status = 'ACTIVE' AND deleted = false")
-    EnterpriseFile findByMd5(@Param("md5") String md5, @Param("enterpriseId") String enterpriseId);
+    EnterpriseFile findByMd5(@Param("md5") String md5, @Param("enterpriseId") Long enterpriseId);
 
     /**
      * 查询待审核的企业文件
@@ -52,7 +52,7 @@ public interface EnterpriseFileRepository extends BaseMapper<EnterpriseFile> {
     @Select("SELECT * FROM enterprise_files WHERE enterprise_id = #{enterpriseId} " +
             "AND review_status = 'APPROVED' AND status = 'ACTIVE' AND deleted = false " +
             "ORDER BY created_at DESC")
-    List<EnterpriseFile> findApprovedFilesByEnterpriseId(@Param("enterpriseId") String enterpriseId);
+    List<EnterpriseFile> findApprovedFilesByEnterpriseId(@Param("enterpriseId") Long enterpriseId);
 
     /**
      * 获取企业文件数量统计
@@ -64,7 +64,7 @@ public interface EnterpriseFileRepository extends BaseMapper<EnterpriseFile> {
             "COUNT(*) as total_files " +
             "FROM enterprise_files " +
             "WHERE enterprise_id = #{enterpriseId} AND status = 'ACTIVE' AND deleted = false")
-    FileStatistics getFileStatistics(@Param("enterpriseId") String enterpriseId);
+    FileStatistics getFileStatistics(@Param("enterpriseId") Long enterpriseId);
 
     /**
      * 文件统计信息

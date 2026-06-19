@@ -15,7 +15,7 @@ public class FileResponseDTO {
     /**
      * 文件ID
      */
-    private String id;
+    private Long id;
 
     /**
      * 文件名称
@@ -105,7 +105,7 @@ public class FileResponseDTO {
     /**
      * 上传用户ID
      */
-    private String uploadUserId;
+    private Long uploadUserId;
 
     /**
      * 创建时间

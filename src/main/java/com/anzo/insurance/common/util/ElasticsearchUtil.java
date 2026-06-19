@@ -83,11 +83,11 @@ public class ElasticsearchUtil {
         }
     }
 
-    public <T> boolean save(String indexName, String id, T document) {
+    public <T> boolean save(String indexName, Long id, T document) {
         try {
             IndexResponse response = elasticsearchClient.index(i -> i
                     .index(indexName)
-                    .id(id)
+                    .id(String.valueOf(id))
                     .document(document)
             );
             return response.result() != null;
@@ -108,22 +108,22 @@ public class ElasticsearchUtil {
         }
     }
 
-    public <T> T getById(String indexName, String id, Class<T> clazz) {
+    public <T> T getById(String indexName, Long id, Class<T> clazz) {
         try {
             GetResponse<T> response = elasticsearchClient.get(g -> g
                     .index(indexName)
-                    .id(id), clazz);
+                    .id(String.valueOf(id)), clazz);
             return response.found() ? response.source() : null;
         } catch (Exception e) {
             throw wrapException("查询文档失败: " + indexName + "/" + id, e);
         }
     }
 
-    public boolean deleteById(String indexName, String id) {
+    public boolean deleteById(String indexName, Long id) {
         try {
             DeleteResponse response = elasticsearchClient.delete(d -> d
                     .index(indexName)
-                    .id(id)
+                    .id(String.valueOf(id))
             );
             return response.result() != null;
         } catch (Exception e) {
@@ -131,11 +131,11 @@ public class ElasticsearchUtil {
         }
     }
 
-    public <T> boolean update(String indexName, String id, T document, Class<T> clazz) {
+    public <T> boolean update(String indexName, Long id, T document, Class<T> clazz) {
         try {
             UpdateResponse<T> response = elasticsearchClient.update(u -> u
                     .index(indexName)
-                    .id(id)
+                    .id(String.valueOf(id))
                     .doc(document), clazz);
             return response.result() != null;
         } catch (Exception e) {

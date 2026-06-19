@@ -5,6 +5,7 @@ import com.anzo.insurance.modules.auth.dto.ChangePasswordDTO;
 import com.anzo.insurance.modules.auth.dto.LoginDTO;
 import com.anzo.insurance.modules.auth.dto.RegisterDTO;
 import com.anzo.insurance.modules.auth.dto.AuthResponseDTO;
+import com.anzo.insurance.modules.auth.dto.RegisterLicenseUploadResponseDTO;
 import com.anzo.insurance.modules.auth.dto.ResetPasswordDTO;
 import com.anzo.insurance.modules.auth.dto.UpdateProfileDTO;
 import com.anzo.insurance.modules.auth.service.AuthService;
@@ -12,6 +13,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -37,6 +40,12 @@ public class AuthController {
     public ApiResponse<AuthResponseDTO> register(@Valid @RequestBody RegisterDTO registerDTO) {
         AuthResponseDTO response = authService.register(registerDTO);
         return ApiResponse.success(response);
+    }
+
+    @Operation(summary = "注册前上传营业执照")
+    @PostMapping(value = "/register/license", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<RegisterLicenseUploadResponseDTO> uploadRegisterLicense(@RequestPart("file") MultipartFile file) {
+        return ApiResponse.success(authService.uploadRegisterLicense(file));
     }
     
     @Operation(summary = "用户登出")

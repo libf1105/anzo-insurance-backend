@@ -16,7 +16,7 @@ public class PolicyUpdateDTO {
      * 保单ID
      */
     @NotNull(message = "保单ID不能为空")
-    private String id;
+    private Long id;
 
     /**
      * 启运日期

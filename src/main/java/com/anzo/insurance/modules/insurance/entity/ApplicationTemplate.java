@@ -12,11 +12,11 @@ import java.time.LocalDateTime;
 @Data
 @TableName("application_template")
 public class ApplicationTemplate {
-    @TableId(type = IdType.ASSIGN_UUID)
-    private String id;
+    @TableId(type = IdType.AUTO)
+    private Long id;
 
     @TableField("enterprise_id")
-    private String enterpriseId;
+    private Long enterpriseId;
 
     private String name;
 
@@ -30,13 +30,13 @@ public class ApplicationTemplate {
     private String insuranceProduct;
 
     @TableField("insurer_id")
-    private String insurerId;
+    private Long insurerId;
 
     @TableField("applicant_id")
-    private String applicantId;
+    private Long applicantId;
 
     @TableField("insured_id")
-    private String insuredId;
+    private Long insuredId;
 
     @TableField("departure_country")
     private String departureCountry;

@@ -50,7 +50,7 @@ public class EnterpriseController {
     @GetMapping("/{enterpriseId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ApiResponse<Enterprise> getEnterprise(
-            @Parameter(description = "企业ID") @PathVariable String enterpriseId) {
+            @Parameter(description = "企业ID") @PathVariable Long enterpriseId) {
         Enterprise enterprise = enterpriseService.getEnterpriseById(enterpriseId);
         return ApiResponse.success(enterprise);
     }
@@ -66,7 +66,7 @@ public class EnterpriseController {
     @PutMapping("/{enterpriseId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ApiResponse<Void> updateEnterprise(
-            @Parameter(description = "企业ID") @PathVariable String enterpriseId,
+            @Parameter(description = "企业ID") @PathVariable Long enterpriseId,
             @Valid @RequestBody EnterpriseUpdateDTO updateDTO) {
         enterpriseService.updateEnterprise(enterpriseId, updateDTO);
         return ApiResponse.success();
@@ -116,7 +116,7 @@ public class EnterpriseController {
     @PostMapping("/{enterpriseId}/enable")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ApiResponse<Void> enableEnterprise(
-            @Parameter(description = "企业ID") @PathVariable String enterpriseId) {
+            @Parameter(description = "企业ID") @PathVariable Long enterpriseId) {
         enterpriseService.enableEnterprise(enterpriseId);
         return ApiResponse.success();
     }
@@ -125,7 +125,7 @@ public class EnterpriseController {
     @PostMapping("/{enterpriseId}/disable")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ApiResponse<Void> disableEnterprise(
-            @Parameter(description = "企业ID") @PathVariable String enterpriseId,
+            @Parameter(description = "企业ID") @PathVariable Long enterpriseId,
             @Parameter(description = "禁用原因") @RequestParam String reason) {
         enterpriseService.disableEnterprise(enterpriseId, reason);
         return ApiResponse.success();
@@ -134,7 +134,7 @@ public class EnterpriseController {
     @Operation(summary = "获取企业统计信息")
     @GetMapping("/{enterpriseId}/statistics")
     public ApiResponse<EnterpriseService.EnterpriseStatistics> getEnterpriseStatistics(
-            @Parameter(description = "企业ID") @PathVariable String enterpriseId) {
+            @Parameter(description = "企业ID") @PathVariable Long enterpriseId) {
         EnterpriseService.EnterpriseStatistics statistics = enterpriseService.getEnterpriseStatistics(enterpriseId);
         return ApiResponse.success(statistics);
     }
@@ -142,7 +142,7 @@ public class EnterpriseController {
     @Operation(summary = "检查企业状态")
     @GetMapping("/{enterpriseId}/status")
     public ApiResponse<Boolean> checkEnterpriseStatus(
-            @Parameter(description = "企业ID") @PathVariable String enterpriseId) {
+            @Parameter(description = "企业ID") @PathVariable Long enterpriseId) {
         boolean isActive = enterpriseService.checkEnterpriseStatus(enterpriseId);
         return ApiResponse.success(isActive);
     }
@@ -150,7 +150,7 @@ public class EnterpriseController {
     @Operation(summary = "获取企业余额信息")
     @GetMapping("/{enterpriseId}/balance")
     public ApiResponse<Object> getEnterpriseBalance(
-            @Parameter(description = "企业ID") @PathVariable String enterpriseId) {
+            @Parameter(description = "企业ID") @PathVariable Long enterpriseId) {
         Enterprise enterprise = enterpriseService.getEnterpriseById(enterpriseId);
         
         return ApiResponse.success(Map.of(

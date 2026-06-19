@@ -58,12 +58,12 @@ public class NotificationQueryDTO {
     /**
      * 企业ID
      */
-    private String enterpriseId;
+    private Long enterpriseId;
 
     /**
      * 用户ID
      */
-    private String userId;
+    private Long userId;
 
     /**
      * 排序字段

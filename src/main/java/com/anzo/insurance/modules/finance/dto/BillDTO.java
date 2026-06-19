@@ -14,7 +14,7 @@ public class BillDTO {
     /**
      * 账单ID
      */
-    private String id;
+    private Long id;
 
     /**
      * 账单编号
@@ -24,7 +24,7 @@ public class BillDTO {
     /**
      * 企业ID
      */
-    private String enterpriseId;
+    private Long enterpriseId;
 
     /**
      * 企业名称
@@ -124,7 +124,7 @@ public class BillDTO {
     /**
      * 对账人用户ID
      */
-    private String reconciliationUserId;
+    private Long reconciliationUserId;
 
     /**
      * 对账人用户名

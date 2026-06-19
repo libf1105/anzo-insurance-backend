@@ -20,7 +20,7 @@ public class ClaimProcessRecord extends BaseEntity {
      * 理赔ID
      */
     @TableField("claim_id")
-    private String claimId;
+    private Long claimId;
 
     /**
      * 原状态
@@ -62,7 +62,7 @@ public class ClaimProcessRecord extends BaseEntity {
      * 操作人用户ID
      */
     @TableField("operator_user_id")
-    private String operatorUserId;
+    private Long operatorUserId;
 
     /**
      * 操作人用户名

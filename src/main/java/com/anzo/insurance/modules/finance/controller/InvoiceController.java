@@ -29,7 +29,7 @@ public class InvoiceController {
     @ApiOperation("获取发票详情")
     @GetMapping("/{id}")
     public ApiResponse<InvoiceDTO> getInvoiceDetail(
-            @ApiParam("发票ID") @PathVariable String id) {
+            @ApiParam("发票ID") @PathVariable Long id) {
         InvoiceDTO invoiceDetail = invoiceService.getInvoice(id);
         return ApiResponse.success(invoiceDetail);
     }
@@ -72,7 +72,7 @@ public class InvoiceController {
     @ApiOperation("更新发票状态")
     @PutMapping("/{id}/status")
     public ApiResponse<Void> updateInvoiceStatus(
-            @ApiParam("发票ID") @PathVariable String id,
+            @ApiParam("发票ID") @PathVariable Long id,
             @ApiParam("发票状态（0-待开票，1-开票中，2-已开票，3-开票失败，4-已作废）") @RequestParam Integer status,
             @ApiParam("备注") @RequestParam(required = false) String remark) {
         invoiceService.updateInvoiceStatus(id, status, remark);
@@ -82,7 +82,7 @@ public class InvoiceController {
     @ApiOperation("获取企业发票统计")
     @GetMapping("/stats/{enterpriseId}")
     public ApiResponse<Map<String, Object>> getEnterpriseInvoiceStats(
-            @ApiParam("企业ID") @PathVariable String enterpriseId,
+            @ApiParam("企业ID") @PathVariable Long enterpriseId,
             @ApiParam("开始时间") @RequestParam(required = false) String startTime,
             @ApiParam("结束时间") @RequestParam(required = false) String endTime) {
         Map<String, Object> stats = invoiceService.getEnterpriseInvoiceStats(enterpriseId, startTime, endTime);
@@ -92,7 +92,7 @@ public class InvoiceController {
     @ApiOperation("批量开票")
     @PostMapping("/batch-issue")
     public ApiResponse<Void> batchIssueInvoices(
-            @ApiParam("发票ID列表") @RequestBody List<String> invoiceIds) {
+            @ApiParam("发票ID列表") @RequestBody List<Long> invoiceIds) {
         invoiceService.batchIssueInvoices(invoiceIds);
         return ApiResponse.success();
     }
@@ -100,7 +100,7 @@ public class InvoiceController {
     @ApiOperation("下载发票文件")
     @GetMapping("/{id}/download")
     public ApiResponse<String> downloadInvoiceFile(
-            @ApiParam("发票ID") @PathVariable String id) {
+            @ApiParam("发票ID") @PathVariable Long id) {
         String fileUrl = invoiceService.downloadInvoiceFile(id);
         return ApiResponse.success(fileUrl);
     }
@@ -115,7 +115,7 @@ public class InvoiceController {
     @ApiOperation("查询可申请发票的账单列表")
     @GetMapping("/available-bills/{enterpriseId}")
     public ApiResponse<List<BillDTO>> queryAvailableBillsForInvoice(
-            @ApiParam("企业ID") @PathVariable String enterpriseId) {
+            @ApiParam("企业ID") @PathVariable Long enterpriseId) {
         List<BillDTO> bills = invoiceService.queryAvailableBillsForInvoice(enterpriseId);
         return ApiResponse.success(bills);
     }

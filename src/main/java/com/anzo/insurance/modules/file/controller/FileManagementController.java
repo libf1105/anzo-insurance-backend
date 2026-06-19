@@ -31,7 +31,7 @@ import java.util.List;
  * 文件管理控制器
  */
 @RestController
-@RequestMapping("/api/enterprise/files")
+@RequestMapping("/enterprise/files")
 @Tag(name = "文件管理", description = "企业文件上传、下载和管理接口")
 @Slf4j
 @RequiredArgsConstructor
@@ -69,12 +69,12 @@ public class FileManagementController {
     @GetMapping("/{fileId}")
     @Operation(summary = "获取文件信息")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'OPERATOR', 'FINANCE')")
-    public ApiResponse<FileResponseDTO> getFile(@PathVariable String fileId) {
+    public ApiResponse<FileResponseDTO> getFile(@PathVariable Long fileId) {
         FileResponseDTO fileResponse = fileManagementService.getFileById(fileId);
         return ApiResponse.success(fileResponse);
     }
 
-    @GetMapping("/list")
+    @GetMapping({"", "/list"})
     @Operation(summary = "获取企业文件列表")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'OPERATOR', 'FINANCE')")
     public ApiResponse<List<FileResponseDTO>> getEnterpriseFiles(
@@ -107,7 +107,7 @@ public class FileManagementController {
     @GetMapping("/{fileId}/download")
     @Operation(summary = "下载文件")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'OPERATOR', 'FINANCE')")
-    public ResponseEntity<Resource> downloadFile(@PathVariable String fileId) {
+    public ResponseEntity<Resource> downloadFile(@PathVariable Long fileId) {
         FileResponseDTO fileInfo = fileManagementService.getFileById(fileId);
         byte[] fileBytes = fileManagementService.downloadFileBytes(fileId);
         
@@ -132,7 +132,7 @@ public class FileManagementController {
     @GetMapping("/{fileId}/url")
     @Operation(summary = "获取文件访问URL")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'OPERATOR', 'FINANCE')")
-    public ApiResponse<String> getFileUrl(@PathVariable String fileId) {
+    public ApiResponse<String> getFileUrl(@PathVariable Long fileId) {
         String fileUrl = fileManagementService.getFileUrl(fileId);
         return ApiResponse.success(fileUrl);
     }
@@ -140,7 +140,7 @@ public class FileManagementController {
     @DeleteMapping("/{fileId}")
     @Operation(summary = "删除文件")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN')")
-    public ApiResponse<Void> deleteFile(@PathVariable String fileId) {
+    public ApiResponse<Void> deleteFile(@PathVariable Long fileId) {
         fileManagementService.deleteFile(fileId);
         return ApiResponse.success();
     }
@@ -149,7 +149,7 @@ public class FileManagementController {
     @Operation(summary = "审核文件")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN')")
     public ApiResponse<Void> reviewFile(
-            @PathVariable String fileId,
+            @PathVariable Long fileId,
             @RequestParam @NotBlank(message = "审核结果不能为空") String reviewResult,
             @RequestParam(required = false) String remark) {
         
@@ -162,7 +162,7 @@ public class FileManagementController {
     @Operation(summary = "批量审核文件")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN')")
     public ApiResponse<Void> batchReviewFiles(
-            @RequestParam List<String> fileIds,
+            @RequestParam List<Long> fileIds,
             @RequestParam @NotBlank(message = "审核结果不能为空") String reviewResult,
             @RequestParam(required = false) String remark) {
         
@@ -191,7 +191,7 @@ public class FileManagementController {
     @Operation(summary = "更新文件描述")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'OPERATOR', 'FINANCE')")
     public ApiResponse<Void> updateFileDescription(
-            @PathVariable String fileId,
+            @PathVariable Long fileId,
             @RequestParam String description) {
         
         fileManagementService.updateFileDescription(fileId, description);
@@ -203,7 +203,7 @@ public class FileManagementController {
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'OPERATOR', 'FINANCE')")
     public ApiResponse<Boolean> checkFileExists(
             @RequestParam String md5,
-            @RequestParam(required = false) String enterpriseId) {
+            @RequestParam(required = false) Long enterpriseId) {
         
         boolean exists = fileManagementService.checkFileExists(md5, enterpriseId);
         return ApiResponse.success(exists);

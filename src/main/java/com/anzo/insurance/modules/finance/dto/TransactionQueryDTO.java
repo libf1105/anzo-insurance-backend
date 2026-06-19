@@ -14,12 +14,12 @@ public class TransactionQueryDTO {
     /**
      * 企业ID
      */
-    private String enterpriseId;
+    private Long enterpriseId;
 
     /**
      * 钱包ID
      */
-    private String walletId;
+    private Long walletId;
 
     /**
      * 交易类型
@@ -34,7 +34,7 @@ public class TransactionQueryDTO {
     /**
      * 业务ID
      */
-    private String businessId;
+    private Long businessId;
 
     /**
      * 交易状态
@@ -79,7 +79,7 @@ public class TransactionQueryDTO {
     /**
      * 操作人用户ID
      */
-    private String operatorUserId;
+    private Long operatorUserId;
 
     /**
      * 页码

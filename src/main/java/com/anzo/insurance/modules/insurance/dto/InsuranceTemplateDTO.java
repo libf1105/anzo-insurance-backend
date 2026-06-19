@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Schema(description = "投保模板")
 public class InsuranceTemplateDTO {
     @Schema(description = "模板ID")
-    private String id;
+    private Long id;
 
     @Schema(description = "模板名称")
     private String name;
@@ -28,16 +28,16 @@ public class InsuranceTemplateDTO {
     private String insuranceProduct;
 
     @Schema(description = "保司ID")
-    private String insurerId;
+    private Long insurerId;
 
     @Schema(description = "投保人ID")
-    private String applicantId;
+    private Long applicantId;
 
     @Schema(description = "投保人名称")
     private String applicantName;
 
     @Schema(description = "被保险人ID")
-    private String insuredId;
+    private Long insuredId;
 
     @Schema(description = "被保险人名称")
     private String insuredName;

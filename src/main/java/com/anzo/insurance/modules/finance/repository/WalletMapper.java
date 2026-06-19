@@ -18,37 +18,37 @@ public interface WalletMapper extends BaseMapper<Wallet> {
     /**
      * 根据企业ID查询钱包
      */
-    Wallet selectByEnterpriseId(@Param("enterpriseId") String enterpriseId);
+    Wallet selectByEnterpriseId(@Param("enterpriseId") Long enterpriseId);
 
     /**
      * 更新钱包余额
      */
-    int updateBalance(@Param("id") String id, @Param("amount") BigDecimal amount);
+    int updateBalance(@Param("id") Long id, @Param("amount") BigDecimal amount);
 
     /**
      * 冻结金额
      */
-    int freezeBalance(@Param("id") String id, @Param("amount") BigDecimal amount);
+    int freezeBalance(@Param("id") Long id, @Param("amount") BigDecimal amount);
 
     /**
      * 解冻金额
      */
-    int unfreezeBalance(@Param("id") String id, @Param("amount") BigDecimal amount);
+    int unfreezeBalance(@Param("id") Long id, @Param("amount") BigDecimal amount);
 
     /**
      * 更新充值统计
      */
-    int updateRechargeAmount(@Param("id") String id, @Param("amount") BigDecimal amount);
+    int updateRechargeAmount(@Param("id") Long id, @Param("amount") BigDecimal amount);
 
     /**
      * 更新消费统计
      */
-    int updateConsumptionAmount(@Param("id") String id, @Param("amount") BigDecimal amount);
+    int updateConsumptionAmount(@Param("id") Long id, @Param("amount") BigDecimal amount);
 
     /**
      * 更新退款统计
      */
-    int updateRefundAmount(@Param("id") String id, @Param("amount") BigDecimal amount);
+    int updateRefundAmount(@Param("id") Long id, @Param("amount") BigDecimal amount);
 
     /**
      * 分页查询钱包列表

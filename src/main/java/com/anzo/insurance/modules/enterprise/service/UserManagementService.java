@@ -14,57 +14,57 @@ public interface UserManagementService {
     /**
      * 获取企业用户列表
      */
-    Page<User> getEnterpriseUsers(String enterpriseId, Pageable pageable);
+    Page<User> getEnterpriseUsers(Long enterpriseId, Pageable pageable);
     
     /**
      * 搜索企业用户
      */
-    Page<User> searchEnterpriseUsers(String enterpriseId, String keyword, Pageable pageable);
+    Page<User> searchEnterpriseUsers(Long enterpriseId, String keyword, Pageable pageable);
     
     /**
      * 创建企业用户
      */
-    User createEnterpriseUser(String enterpriseId, UserCreateDTO createDTO);
+    User createEnterpriseUser(Long enterpriseId, UserCreateDTO createDTO);
     
     /**
      * 获取用户信息
      */
-    User getUser(String enterpriseId, String userId);
+    User getUser(Long enterpriseId, Long userId);
     
     /**
      * 更新用户信息
      */
-    void updateUser(String enterpriseId, String userId, UserUpdateDTO updateDTO);
+    void updateUser(Long enterpriseId, Long userId, UserUpdateDTO updateDTO);
     
     /**
      * 删除用户
      */
-    void deleteUser(String enterpriseId, String userId);
+    void deleteUser(Long enterpriseId, Long userId);
     
     /**
      * 启用用户
      */
-    void enableUser(String enterpriseId, String userId);
+    void enableUser(Long enterpriseId, Long userId);
     
     /**
      * 禁用用户
      */
-    void disableUser(String enterpriseId, String userId);
+    void disableUser(Long enterpriseId, Long userId);
     
     /**
      * 重置用户密码
      */
-    void resetPassword(String enterpriseId, String userId, String newPassword);
+    void resetPassword(Long enterpriseId, Long userId, String newPassword);
     
     /**
      * 验证用户权限
      */
-    boolean verifyUserPermission(String enterpriseId, String userId);
+    boolean verifyUserPermission(Long enterpriseId, Long userId);
     
     /**
      * 获取企业用户统计
      */
-    UserStatistics getUserStatistics(String enterpriseId);
+    UserStatistics getUserStatistics(Long enterpriseId);
     
     /**
      * 用户统计信息

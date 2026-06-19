@@ -21,17 +21,17 @@ public interface NotificationService {
     /**
      * 根据ID获取通知
      */
-    NotificationDTO getNotificationById(String notificationId);
+    NotificationDTO getNotificationById(Long notificationId);
 
     /**
      * 获取用户通知列表
      */
-    List<NotificationDTO> getUserNotifications(String userId);
+    List<NotificationDTO> getUserNotifications(Long userId);
 
     /**
      * 获取企业通知列表
      */
-    List<NotificationDTO> getEnterpriseNotifications(String enterpriseId);
+    List<NotificationDTO> getEnterpriseNotifications(Long enterpriseId);
 
     /**
      * 分页查询通知
@@ -41,70 +41,70 @@ public interface NotificationService {
     /**
      * 标记通知为已读
      */
-    void markAsRead(String notificationId);
+    void markAsRead(Long notificationId);
 
     /**
      * 批量标记通知为已读
      */
-    void markAllAsRead(String userId);
+    void markAllAsRead(Long userId);
 
     /**
      * 批量标记企业通知为已读
      */
-    void markAllAsReadByEnterprise(String enterpriseId);
+    void markAllAsReadByEnterprise(Long enterpriseId);
 
     /**
      * 删除通知（逻辑删除）
      */
-    void deleteNotification(String notificationId);
+    void deleteNotification(Long notificationId);
 
     /**
      * 批量删除通知
      */
-    void batchDeleteNotifications(List<String> notificationIds);
+    void batchDeleteNotifications(List<Long> notificationIds);
 
     /**
      * 获取未读通知数量
      */
-    Integer getUnreadCount(String userId);
+    Integer getUnreadCount(Long userId);
 
     /**
      * 获取企业未读通知数量
      */
-    Integer getEnterpriseUnreadCount(String enterpriseId);
+    Integer getEnterpriseUnreadCount(Long enterpriseId);
 
     /**
      * 发送系统通知
      */
-    void sendSystemNotification(String title, String content, String enterpriseId, List<String> userIds);
+    void sendSystemNotification(String title, String content, Long enterpriseId, List<Long> userIds);
 
     /**
      * 发送余额变动通知
      */
-    void sendBalanceNotification(String enterpriseId, String userId, String changeType, 
+    void sendBalanceNotification(Long enterpriseId, Long userId, String changeType, 
                                  String amount, String balanceAfter, String remark);
 
     /**
      * 发送审核通知
      */
-    void sendReviewNotification(String enterpriseId, String userId, String reviewType,
+    void sendReviewNotification(Long enterpriseId, Long userId, String reviewType,
                                String reviewResult, String targetName, String remark);
 
     /**
      * 发送预警通知
      */
-    void sendWarningNotification(String enterpriseId, String userId, String warningType,
+    void sendWarningNotification(Long enterpriseId, Long userId, String warningType,
                                  String warningContent, String actionRequired);
 
     /**
      * 获取最新通知
      */
-    List<NotificationDTO> getLatestNotifications(String userId, int limit);
+    List<NotificationDTO> getLatestNotifications(Long userId, int limit);
 
     /**
      * 获取企业最新通知
      */
-    List<NotificationDTO> getEnterpriseLatestNotifications(String enterpriseId, int limit);
+    List<NotificationDTO> getEnterpriseLatestNotifications(Long enterpriseId, int limit);
 
     /**
      * 清理过期通知
@@ -114,29 +114,29 @@ public interface NotificationService {
     /**
      * 获取通知统计信息
      */
-    NotificationStatistics getNotificationStatistics(String userId);
+    NotificationStatistics getNotificationStatistics(Long userId);
 
     /**
      * 获取企业通知统计信息
      */
-    NotificationStatistics getEnterpriseNotificationStatistics(String enterpriseId);
+    NotificationStatistics getEnterpriseNotificationStatistics(Long enterpriseId);
 
     /**
      * 发送保单相关通知
      */
-    void sendPolicyNotification(String enterpriseId, String userId, String policyId,
+    void sendPolicyNotification(Long enterpriseId, Long userId, Long policyId,
                                String notificationType, String content);
 
     /**
      * 发送理赔相关通知
      */
-    void sendClaimNotification(String enterpriseId, String userId, String claimId,
+    void sendClaimNotification(Long enterpriseId, Long userId, Long claimId,
                               String notificationType, String content);
 
     /**
      * 发送企业状态变更通知
      */
-    void sendEnterpriseStatusNotification(String enterpriseId, String oldStatus, 
+    void sendEnterpriseStatusNotification(Long enterpriseId, String oldStatus, 
                                          String newStatus, String remark);
 
     /**

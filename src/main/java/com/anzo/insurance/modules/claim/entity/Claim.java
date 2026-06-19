@@ -28,13 +28,13 @@ public class Claim extends BaseEntity {
      * 企业ID
      */
     @TableField("enterprise_id")
-    private String enterpriseId;
+    private Long enterpriseId;
 
     /**
      * 保单ID
      */
     @TableField("policy_id")
-    private String policyId;
+    private Long policyId;
 
     /**
      * 保单号
@@ -140,7 +140,7 @@ public class Claim extends BaseEntity {
      * 处理人用户ID
      */
     @TableField("handler_user_id")
-    private String handlerUserId;
+    private Long handlerUserId;
 
     /**
      * 处理人用户名
@@ -158,7 +158,7 @@ public class Claim extends BaseEntity {
      * 审核人用户ID
      */
     @TableField("review_user_id")
-    private String reviewUserId;
+    private Long reviewUserId;
 
     /**
      * 审核人用户名
@@ -182,7 +182,7 @@ public class Claim extends BaseEntity {
      * 查勘人用户ID
      */
     @TableField("survey_user_id")
-    private String surveyUserId;
+    private Long surveyUserId;
 
     /**
      * 查勘人用户名
@@ -206,7 +206,7 @@ public class Claim extends BaseEntity {
      * 支付操作人ID
      */
     @TableField("payment_user_id")
-    private String paymentUserId;
+    private Long paymentUserId;
 
     /**
      * 支付操作人用户名

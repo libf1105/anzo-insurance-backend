@@ -13,12 +13,12 @@ public class WalletDTO {
     /**
      * 钱包ID
      */
-    private String id;
+    private Long id;
 
     /**
      * 企业ID
      */
-    private String enterpriseId;
+    private Long enterpriseId;
 
     /**
      * 企业名称

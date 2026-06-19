@@ -19,7 +19,7 @@ public class SecurityUtil {
     /**
      * 获取当前用户ID
      */
-    public static String getCurrentUserId() {
+    public static Long getCurrentUserId() {
         Authentication authentication = getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
             return null;
@@ -36,7 +36,7 @@ public class SecurityUtil {
     /**
      * 获取当前用户企业ID
      */
-    public static String getCurrentEnterpriseId() {
+    public static Long getCurrentEnterpriseId() {
         Authentication authentication = getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
             return null;

@@ -10,9 +10,9 @@ import java.time.LocalDateTime;
 @Data
 public class ClaimProcessRecordDTO {
 
-    private String id;
+    private Long id;
 
-    private String claimId;
+    private Long claimId;
 
     private String fromStatus;
 
@@ -26,7 +26,7 @@ public class ClaimProcessRecordDTO {
 
     private String attachmentName;
 
-    private String operatorUserId;
+    private Long operatorUserId;
 
     private String operatorUserName;
 

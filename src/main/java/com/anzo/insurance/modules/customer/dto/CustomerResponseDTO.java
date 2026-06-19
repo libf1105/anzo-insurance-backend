@@ -13,7 +13,7 @@ public class CustomerResponseDTO {
     /**
      * 客户ID
      */
-    private String id;
+    private Long id;
     
     /**
      * 客户企业名称

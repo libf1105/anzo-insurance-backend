@@ -34,17 +34,17 @@ public interface InsuranceService {
     /**
      * 提交投保申请
      */
-    InsuranceApplication submitApplication(String applicationId, SubmitApplicationDTO dto);
+    InsuranceApplication submitApplication(Long applicationId, SubmitApplicationDTO dto);
     
     /**
      * 获取投保申请详情
      */
-    InsuranceApplication getApplication(String id);
+    InsuranceApplication getApplication(Long id);
 
     /**
      * 删除投保申请
      */
-    void deleteApplication(String applicationId);
+    void deleteApplication(Long applicationId);
     
     /**
      * 获取企业投保列表
@@ -54,7 +54,7 @@ public interface InsuranceService {
     /**
      * 撤销投保申请
      */
-    InsuranceApplication cancelApplication(String applicationId, String reason);
+    InsuranceApplication cancelApplication(Long applicationId, String reason);
     
     /**
      * 保存投保草稿
@@ -69,12 +69,12 @@ public interface InsuranceService {
     /**
      * 获取投保草稿详情
      */
-    InsuranceDraftDTO getDraft(String draftId);
+    InsuranceDraftDTO getDraft(Long draftId);
     
     /**
      * 删除投保草稿
      */
-    boolean deleteDraft(String draftId);
+    boolean deleteDraft(Long draftId);
     
     /**
      * 创建投保模板
@@ -89,10 +89,10 @@ public interface InsuranceService {
     /**
      * 获取投保模板详情
      */
-    InsuranceTemplateDTO getTemplate(String templateId);
+    InsuranceTemplateDTO getTemplate(Long templateId);
     
     /**
      * 删除投保模板
      */
-    boolean deleteTemplate(String templateId);
+    boolean deleteTemplate(Long templateId);
 }

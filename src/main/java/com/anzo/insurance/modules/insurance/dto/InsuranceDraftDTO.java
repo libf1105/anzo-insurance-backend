@@ -13,7 +13,7 @@ import java.util.Map;
 @Schema(description = "投保草稿")
 public class InsuranceDraftDTO {
     @Schema(description = "草稿ID")
-    private String id;
+    private Long id;
 
     @Schema(description = "当前步骤")
     private Integer currentStep;

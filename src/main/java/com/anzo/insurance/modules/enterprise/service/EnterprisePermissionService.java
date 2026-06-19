@@ -20,7 +20,7 @@ public class EnterprisePermissionService {
     /**
      * 检查当前用户是否有企业访问权限
      */
-    public boolean hasEnterpriseAccess(String enterpriseId) {
+    public boolean hasEnterpriseAccess(Long enterpriseId) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND.getCode(), "用户不存在"));
@@ -37,7 +37,7 @@ public class EnterprisePermissionService {
     /**
      * 检查当前用户是否有企业管理权限（管理员以上）
      */
-    public boolean hasAdminAccess(String enterpriseId) {
+    public boolean hasAdminAccess(Long enterpriseId) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND.getCode(), "用户不存在"));
@@ -58,7 +58,7 @@ public class EnterprisePermissionService {
     /**
      * 检查当前用户是否是目标用户自己
      */
-    public boolean isSelf(String enterpriseId, String userId) {
+    public boolean isSelf(Long enterpriseId, Long userId) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND.getCode(), "用户不存在"));
@@ -75,7 +75,7 @@ public class EnterprisePermissionService {
     /**
      * 获取当前用户所在的企业ID
      */
-    public String getCurrentEnterpriseId() {
+    public Long getCurrentEnterpriseId() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND.getCode(), "用户不存在"));

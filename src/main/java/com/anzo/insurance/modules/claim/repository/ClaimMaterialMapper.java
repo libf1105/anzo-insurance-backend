@@ -18,13 +18,13 @@ public interface ClaimMaterialMapper extends BaseMapper<ClaimMaterial> {
      * 根据理赔ID查找材料列表
      */
     @Select("SELECT * FROM t_claim_material WHERE claim_id = #{claimId} AND deleted = false ORDER BY upload_time DESC")
-    List<ClaimMaterial> findByClaimId(@Param("claimId") String claimId);
+    List<ClaimMaterial> findByClaimId(@Param("claimId") Long claimId);
 
     /**
      * 根据理赔ID和材料类型查找材料
      */
     @Select("SELECT * FROM t_claim_material WHERE claim_id = #{claimId} AND material_type = #{materialType} AND deleted = false ORDER BY upload_time DESC")
-    List<ClaimMaterial> findByClaimIdAndType(@Param("claimId") String claimId, @Param("materialType") String materialType);
+    List<ClaimMaterial> findByClaimIdAndType(@Param("claimId") Long claimId, @Param("materialType") String materialType);
 
     /**
      * 统计理赔材料状态
@@ -34,13 +34,13 @@ public interface ClaimMaterialMapper extends BaseMapper<ClaimMaterial> {
             "COUNT(CASE WHEN is_approved = false AND is_required = true THEN 1 END) as pending_required_count, " +
             "COUNT(*) as total_count " +
             "FROM t_claim_material WHERE claim_id = #{claimId} AND deleted = false")
-    MaterialStatistics getMaterialStatistics(@Param("claimId") String claimId);
+    MaterialStatistics getMaterialStatistics(@Param("claimId") Long claimId);
 
     /**
      * 检查必需材料是否完整
      */
     @Select("SELECT COUNT(*) = 0 FROM t_claim_material WHERE claim_id = #{claimId} AND is_required = true AND is_approved = false AND deleted = false")
-    boolean areRequiredMaterialsComplete(@Param("claimId") String claimId);
+    boolean areRequiredMaterialsComplete(@Param("claimId") Long claimId);
 
     /**
      * 材料统计结果类

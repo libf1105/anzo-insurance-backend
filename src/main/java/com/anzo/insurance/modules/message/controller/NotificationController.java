@@ -46,7 +46,7 @@ public class NotificationController {
     @GetMapping("/{id}")
     @Operation(summary = "获取通知详情")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'OPERATOR', 'FINANCE')")
-    public ApiResponse<NotificationDTO> getNotification(@PathVariable String id) {
+    public ApiResponse<NotificationDTO> getNotification(@PathVariable Long id) {
         NotificationDTO notification = notificationService.getNotificationById(id);
         return ApiResponse.success(notification);
     }
@@ -83,7 +83,7 @@ public class NotificationController {
     @PutMapping("/{id}/read")
     @Operation(summary = "标记通知为已读")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'OPERATOR', 'FINANCE')")
-    public ApiResponse<Void> markAsRead(@PathVariable String id) {
+    public ApiResponse<Void> markAsRead(@PathVariable Long id) {
         notificationService.markAsRead(id);
         return ApiResponse.success();
     }
@@ -109,7 +109,7 @@ public class NotificationController {
     @DeleteMapping("/{id}")
     @Operation(summary = "删除通知")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN')")
-    public ApiResponse<Void> deleteNotification(@PathVariable String id) {
+    public ApiResponse<Void> deleteNotification(@PathVariable Long id) {
         notificationService.deleteNotification(id);
         return ApiResponse.success();
     }
@@ -117,7 +117,7 @@ public class NotificationController {
     @DeleteMapping("/batch")
     @Operation(summary = "批量删除通知")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN')")
-    public ApiResponse<Void> batchDeleteNotifications(@RequestParam List<String> ids) {
+    public ApiResponse<Void> batchDeleteNotifications(@RequestParam List<Long> ids) {
         notificationService.batchDeleteNotifications(ids);
         return ApiResponse.success();
     }
@@ -144,8 +144,8 @@ public class NotificationController {
     public ApiResponse<Void> sendSystemNotification(
             @RequestParam @NotBlank(message = "标题不能为空") String title,
             @RequestParam @NotBlank(message = "内容不能为空") String content,
-            @RequestParam(required = false) String enterpriseId,
-            @RequestParam(required = false) List<String> userIds) {
+            @RequestParam(required = false) Long enterpriseId,
+            @RequestParam(required = false) List<Long> userIds) {
         
         notificationService.sendSystemNotification(title, content, enterpriseId, userIds);
         return ApiResponse.success();
@@ -195,8 +195,8 @@ public class NotificationController {
             @RequestParam @NotBlank(message = "金额不能为空") String amount,
             @RequestParam @NotBlank(message = "变动后余额不能为空") String balanceAfter,
             @RequestParam(required = false) String remark,
-            @RequestParam(required = false) String enterpriseId,
-            @RequestParam(required = false) String userId) {
+            @RequestParam(required = false) Long enterpriseId,
+            @RequestParam(required = false) Long userId) {
         
         notificationService.sendBalanceNotification(enterpriseId, userId, changeType, amount, balanceAfter, remark);
         return ApiResponse.success();
@@ -210,8 +210,8 @@ public class NotificationController {
             @RequestParam @NotBlank(message = "审核结果不能为空") String reviewResult,
             @RequestParam @NotBlank(message = "审核对象名称不能为空") String targetName,
             @RequestParam(required = false) String remark,
-            @RequestParam(required = false) String enterpriseId,
-            @RequestParam(required = false) String userId) {
+            @RequestParam(required = false) Long enterpriseId,
+            @RequestParam(required = false) Long userId) {
         
         notificationService.sendReviewNotification(enterpriseId, userId, reviewType, reviewResult, targetName, remark);
         return ApiResponse.success();
@@ -224,8 +224,8 @@ public class NotificationController {
             @RequestParam @NotBlank(message = "预警类型不能为空") String warningType,
             @RequestParam @NotBlank(message = "预警内容不能为空") String warningContent,
             @RequestParam @NotBlank(message = "需要采取的措施不能为空") String actionRequired,
-            @RequestParam(required = false) String enterpriseId,
-            @RequestParam(required = false) String userId) {
+            @RequestParam(required = false) Long enterpriseId,
+            @RequestParam(required = false) Long userId) {
         
         notificationService.sendWarningNotification(enterpriseId, userId, warningType, warningContent, actionRequired);
         return ApiResponse.success();
@@ -235,11 +235,11 @@ public class NotificationController {
     @Operation(summary = "发送保单通知")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'OPERATOR')")
     public ApiResponse<Void> sendPolicyNotification(
-            @RequestParam @NotBlank(message = "保单ID不能为空") String policyId,
+            @RequestParam @NotBlank(message = "保单ID不能为空") Long policyId,
             @RequestParam @NotBlank(message = "通知类型不能为空") String notificationType,
             @RequestParam @NotBlank(message = "通知内容不能为空") String content,
-            @RequestParam(required = false) String enterpriseId,
-            @RequestParam(required = false) String userId) {
+            @RequestParam(required = false) Long enterpriseId,
+            @RequestParam(required = false) Long userId) {
         
         notificationService.sendPolicyNotification(enterpriseId, userId, policyId, notificationType, content);
         return ApiResponse.success();
@@ -249,11 +249,11 @@ public class NotificationController {
     @Operation(summary = "发送理赔通知")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'OPERATOR')")
     public ApiResponse<Void> sendClaimNotification(
-            @RequestParam @NotBlank(message = "理赔ID不能为空") String claimId,
+            @RequestParam @NotBlank(message = "理赔ID不能为空") Long claimId,
             @RequestParam @NotBlank(message = "通知类型不能为空") String notificationType,
             @RequestParam @NotBlank(message = "通知内容不能为空") String content,
-            @RequestParam(required = false) String enterpriseId,
-            @RequestParam(required = false) String userId) {
+            @RequestParam(required = false) Long enterpriseId,
+            @RequestParam(required = false) Long userId) {
         
         notificationService.sendClaimNotification(enterpriseId, userId, claimId, notificationType, content);
         return ApiResponse.success();
@@ -266,7 +266,7 @@ public class NotificationController {
             @RequestParam @NotBlank(message = "旧状态不能为空") String oldStatus,
             @RequestParam @NotBlank(message = "新状态不能为空") String newStatus,
             @RequestParam(required = false) String remark,
-            @RequestParam(required = false) String enterpriseId) {
+            @RequestParam(required = false) Long enterpriseId) {
         
         notificationService.sendEnterpriseStatusNotification(enterpriseId, oldStatus, newStatus, remark);
         return ApiResponse.success();

@@ -8,7 +8,7 @@ SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
 CREATE TABLE IF NOT EXISTS `enterprise` (
-  `id` VARCHAR(36) NOT NULL COMMENT '企业ID',
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '企业ID',
   `name` VARCHAR(100) NOT NULL COMMENT '企业名称',
   `credit_code` VARCHAR(18) NOT NULL COMMENT '统一社会信用代码',
   `contact_name` VARCHAR(50) NOT NULL COMMENT '联系人姓名',
@@ -37,8 +37,8 @@ CREATE TABLE IF NOT EXISTS `enterprise` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='企业表';
 
 CREATE TABLE IF NOT EXISTS `user` (
-  `id` VARCHAR(36) NOT NULL COMMENT '用户ID',
-  `enterprise_id` VARCHAR(36) NOT NULL COMMENT '企业ID',
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '用户ID',
+  `enterprise_id` BIGINT NOT NULL COMMENT '企业ID',
   `username` VARCHAR(100) NOT NULL COMMENT '用户名',
   `password_hash` VARCHAR(255) NOT NULL COMMENT '密码哈希',
   `real_name` VARCHAR(50) NOT NULL COMMENT '真实姓名',
@@ -62,8 +62,8 @@ CREATE TABLE IF NOT EXISTS `user` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户表';
 
 CREATE TABLE IF NOT EXISTS `customer` (
-  `id` VARCHAR(36) NOT NULL,
-  `enterprise_id` VARCHAR(36) NOT NULL,
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `enterprise_id` BIGINT NOT NULL,
   `name` VARCHAR(100) NOT NULL COMMENT '客户企业名称',
   `credit_code` VARCHAR(18) DEFAULT NULL COMMENT '统一社会信用代码',
   `contact_name` VARCHAR(50) NOT NULL COMMENT '联系人姓名',
@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS `customer` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='客户表';
 
 CREATE TABLE IF NOT EXISTS `insurance_insurer` (
-  `id` VARCHAR(36) NOT NULL COMMENT '保险公司ID',
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '保险公司ID',
   `insurer_no` VARCHAR(30) NOT NULL COMMENT '保司编号',
   `insurer_name` VARCHAR(100) NOT NULL COMMENT '保司名称',
   `insurer_name_en` VARCHAR(100) DEFAULT NULL COMMENT '保司英文名称',
@@ -109,16 +109,16 @@ CREATE TABLE IF NOT EXISTS `insurance_insurer` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='保险公司表';
 
 CREATE TABLE IF NOT EXISTS `insurance_application` (
-  `id` VARCHAR(36) NOT NULL,
-  `enterprise_id` VARCHAR(36) NOT NULL,
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `enterprise_id` BIGINT NOT NULL,
   `application_no` VARCHAR(50) NOT NULL COMMENT '投保申请单号',
   `trade_direction` ENUM('IMPORT', 'EXPORT', 'DOMESTIC') DEFAULT NULL,
   `transport_type` ENUM('SEA', 'AIR', 'RAIL', 'ROAD', 'MULTIMODAL') DEFAULT NULL,
   `insurance_product` ENUM('CARGO', 'LIABILITY') DEFAULT NULL,
-  `insurer_id` VARCHAR(36) DEFAULT NULL,
+  `insurer_id` BIGINT DEFAULT NULL,
   `insurer_name` VARCHAR(100) DEFAULT NULL,
-  `applicant_id` VARCHAR(36) DEFAULT NULL,
-  `insured_id` VARCHAR(36) DEFAULT NULL,
+  `applicant_id` BIGINT DEFAULT NULL,
+  `insured_id` BIGINT DEFAULT NULL,
   `departure_country` VARCHAR(50) DEFAULT NULL,
   `departure_city` VARCHAR(50) DEFAULT NULL,
   `arrival_country` VARCHAR(50) DEFAULT NULL,
@@ -162,15 +162,15 @@ CREATE TABLE IF NOT EXISTS `insurance_application` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='投保申请表，草稿和正式申请共用';
 
 CREATE TABLE IF NOT EXISTS `application_template` (
-  `id` VARCHAR(36) NOT NULL,
-  `enterprise_id` VARCHAR(36) NOT NULL,
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `enterprise_id` BIGINT NOT NULL,
   `name` VARCHAR(100) NOT NULL,
   `trade_direction` ENUM('IMPORT', 'EXPORT', 'DOMESTIC') NOT NULL,
   `transport_type` ENUM('SEA', 'AIR', 'RAIL', 'ROAD', 'MULTIMODAL') NOT NULL,
   `insurance_product` ENUM('CARGO', 'LIABILITY') NOT NULL DEFAULT 'CARGO',
-  `insurer_id` VARCHAR(36) DEFAULT NULL,
-  `applicant_id` VARCHAR(36) DEFAULT NULL,
-  `insured_id` VARCHAR(36) DEFAULT NULL,
+  `insurer_id` BIGINT DEFAULT NULL,
+  `applicant_id` BIGINT DEFAULT NULL,
+  `insured_id` BIGINT DEFAULT NULL,
   `departure_country` VARCHAR(50) DEFAULT NULL,
   `departure_city` VARCHAR(50) DEFAULT NULL,
   `arrival_country` VARCHAR(50) DEFAULT NULL,
@@ -187,13 +187,13 @@ CREATE TABLE IF NOT EXISTS `application_template` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='投保模板表';
 
 CREATE TABLE IF NOT EXISTS `t_policy` (
-  `id` VARCHAR(36) NOT NULL,
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
   `policy_no` VARCHAR(64) NOT NULL,
-  `application_id` VARCHAR(36) NOT NULL,
-  `enterprise_id` VARCHAR(36) NOT NULL,
-  `applicant_user_id` VARCHAR(36) DEFAULT NULL,
+  `application_id` BIGINT NOT NULL,
+  `enterprise_id` BIGINT NOT NULL,
+  `applicant_user_id` BIGINT DEFAULT NULL,
   `status` INT NOT NULL DEFAULT 0 COMMENT '0-已提交,1-待审核,2-保司审核中,3-已承保,4-已生效,5-已撤销,6-已退保,7-已过期',
-  `insurer_id` VARCHAR(36) DEFAULT NULL,
+  `insurer_id` BIGINT DEFAULT NULL,
   `insurer_name` VARCHAR(100) DEFAULT NULL,
   `trade_direction` INT DEFAULT NULL,
   `transport_mode` INT DEFAULT NULL,
@@ -254,10 +254,10 @@ CREATE TABLE IF NOT EXISTS `t_policy` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='保单表';
 
 CREATE TABLE IF NOT EXISTS `t_claim` (
-  `id` VARCHAR(36) NOT NULL,
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
   `claim_no` VARCHAR(64) NOT NULL,
-  `enterprise_id` VARCHAR(36) NOT NULL,
-  `policy_id` VARCHAR(36) NOT NULL,
+  `enterprise_id` BIGINT NOT NULL,
+  `policy_id` BIGINT NOT NULL,
   `policy_no` VARCHAR(64) DEFAULT NULL,
   `insured_name` VARCHAR(100) DEFAULT NULL,
   `insured_contact_name` VARCHAR(100) DEFAULT NULL,
@@ -275,18 +275,18 @@ CREATE TABLE IF NOT EXISTS `t_claim` (
   `material_status` VARCHAR(50) DEFAULT NULL,
   `missing_materials` TEXT,
   `status` VARCHAR(50) NOT NULL DEFAULT 'REPORTED',
-  `handler_user_id` VARCHAR(36) DEFAULT NULL,
+  `handler_user_id` BIGINT DEFAULT NULL,
   `handler_user_name` VARCHAR(100) DEFAULT NULL,
   `handler_assigned_at` DATETIME DEFAULT NULL,
-  `review_user_id` VARCHAR(36) DEFAULT NULL,
+  `review_user_id` BIGINT DEFAULT NULL,
   `review_user_name` VARCHAR(100) DEFAULT NULL,
   `review_at` DATETIME DEFAULT NULL,
   `review_remark` VARCHAR(500) DEFAULT NULL,
-  `survey_user_id` VARCHAR(36) DEFAULT NULL,
+  `survey_user_id` BIGINT DEFAULT NULL,
   `survey_user_name` VARCHAR(100) DEFAULT NULL,
   `survey_at` DATETIME DEFAULT NULL,
   `survey_report` TEXT,
-  `payment_user_id` VARCHAR(36) DEFAULT NULL,
+  `payment_user_id` BIGINT DEFAULT NULL,
   `payment_user_name` VARCHAR(100) DEFAULT NULL,
   `payment_at` DATETIME DEFAULT NULL,
   `payment_amount` DECIMAL(15,2) DEFAULT NULL,
@@ -309,8 +309,8 @@ CREATE TABLE IF NOT EXISTS `t_claim` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='理赔表';
 
 CREATE TABLE IF NOT EXISTS `t_claim_material` (
-  `id` VARCHAR(36) NOT NULL,
-  `claim_id` VARCHAR(36) NOT NULL,
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `claim_id` BIGINT NOT NULL,
   `material_type` VARCHAR(50) NOT NULL,
   `material_name` VARCHAR(200) NOT NULL,
   `material_description` VARCHAR(500) DEFAULT NULL,
@@ -318,12 +318,12 @@ CREATE TABLE IF NOT EXISTS `t_claim_material` (
   `file_name` VARCHAR(255) DEFAULT NULL,
   `file_size` BIGINT DEFAULT NULL,
   `file_type` VARCHAR(100) DEFAULT NULL,
-  `upload_user_id` VARCHAR(36) DEFAULT NULL,
+  `upload_user_id` BIGINT DEFAULT NULL,
   `upload_user_name` VARCHAR(100) DEFAULT NULL,
   `upload_time` DATETIME DEFAULT NULL,
   `is_required` TINYINT(1) NOT NULL DEFAULT 0,
   `is_approved` TINYINT(1) NOT NULL DEFAULT 0,
-  `approve_user_id` VARCHAR(36) DEFAULT NULL,
+  `approve_user_id` BIGINT DEFAULT NULL,
   `approve_user_name` VARCHAR(100) DEFAULT NULL,
   `approve_time` DATETIME DEFAULT NULL,
   `approve_remark` VARCHAR(500) DEFAULT NULL,
@@ -339,15 +339,15 @@ CREATE TABLE IF NOT EXISTS `t_claim_material` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='理赔材料表';
 
 CREATE TABLE IF NOT EXISTS `t_claim_process_record` (
-  `id` VARCHAR(36) NOT NULL,
-  `claim_id` VARCHAR(36) NOT NULL,
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `claim_id` BIGINT NOT NULL,
   `from_status` VARCHAR(50) DEFAULT NULL,
   `to_status` VARCHAR(50) DEFAULT NULL,
   `process_type` VARCHAR(50) DEFAULT NULL,
   `process_content` VARCHAR(500) DEFAULT NULL,
   `attachment_url` VARCHAR(500) DEFAULT NULL,
   `attachment_name` VARCHAR(255) DEFAULT NULL,
-  `operator_user_id` VARCHAR(36) DEFAULT NULL,
+  `operator_user_id` BIGINT DEFAULT NULL,
   `operator_user_name` VARCHAR(100) DEFAULT NULL,
   `operation_time` DATETIME DEFAULT NULL,
   `is_internal` TINYINT(1) NOT NULL DEFAULT 0,
@@ -363,8 +363,8 @@ CREATE TABLE IF NOT EXISTS `t_claim_process_record` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='理赔处理记录表';
 
 CREATE TABLE IF NOT EXISTS `t_wallet` (
-  `id` VARCHAR(36) NOT NULL,
-  `enterprise_id` VARCHAR(36) NOT NULL,
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `enterprise_id` BIGINT NOT NULL,
   `available_balance` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
   `frozen_balance` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
   `total_recharge_amount` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
@@ -386,9 +386,9 @@ CREATE TABLE IF NOT EXISTS `t_wallet` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='企业钱包表';
 
 CREATE TABLE IF NOT EXISTS `t_transaction_record` (
-  `id` VARCHAR(36) NOT NULL,
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
   `transaction_no` VARCHAR(64) NOT NULL,
-  `enterprise_id` VARCHAR(36) NOT NULL,
+  `enterprise_id` BIGINT NOT NULL,
   `transaction_type` INT NOT NULL,
   `amount` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
   `currency` VARCHAR(10) NOT NULL DEFAULT 'CNY',
@@ -396,7 +396,7 @@ CREATE TABLE IF NOT EXISTS `t_transaction_record` (
   `balance_after` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
   `frozen_before` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
   `frozen_after` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
-  `related_business_id` VARCHAR(36) DEFAULT NULL,
+  `related_business_id` BIGINT DEFAULT NULL,
   `related_business_type` VARCHAR(32) DEFAULT NULL,
   `related_business_desc` VARCHAR(255) DEFAULT NULL,
   `status` INT NOT NULL DEFAULT 0,
@@ -405,13 +405,13 @@ CREATE TABLE IF NOT EXISTS `t_transaction_record` (
   `payment_method` VARCHAR(32) DEFAULT NULL,
   `payment_no` VARCHAR(100) DEFAULT NULL,
   `remark` VARCHAR(500) DEFAULT NULL,
-  `operator_user_id` VARCHAR(36) DEFAULT NULL,
+  `operator_user_id` BIGINT DEFAULT NULL,
   `operator_user_name` VARCHAR(100) DEFAULT NULL,
   `is_manual` TINYINT(1) NOT NULL DEFAULT 0,
   `audit_status` INT NOT NULL DEFAULT 0,
   `audit_opinion` VARCHAR(500) DEFAULT NULL,
   `audit_time` DATETIME DEFAULT NULL,
-  `auditor_user_id` VARCHAR(36) DEFAULT NULL,
+  `auditor_user_id` BIGINT DEFAULT NULL,
   `auditor_user_name` VARCHAR(100) DEFAULT NULL,
   `created_by` VARCHAR(36) DEFAULT NULL,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -426,9 +426,9 @@ CREATE TABLE IF NOT EXISTS `t_transaction_record` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='交易流水表';
 
 CREATE TABLE IF NOT EXISTS `t_bill` (
-  `id` VARCHAR(36) NOT NULL,
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
   `bill_no` VARCHAR(64) NOT NULL,
-  `enterprise_id` VARCHAR(36) NOT NULL,
+  `enterprise_id` BIGINT NOT NULL,
   `bill_type` INT NOT NULL DEFAULT 1,
   `period_start_date` DATE DEFAULT NULL,
   `period_end_date` DATE DEFAULT NULL,
@@ -451,7 +451,7 @@ CREATE TABLE IF NOT EXISTS `t_bill` (
   `bill_details` TEXT,
   `reconciliation_status` INT NOT NULL DEFAULT 0,
   `reconciliation_time` DATETIME DEFAULT NULL,
-  `reconciliation_user_id` VARCHAR(36) DEFAULT NULL,
+  `reconciliation_user_id` BIGINT DEFAULT NULL,
   `reconciliation_user_name` VARCHAR(100) DEFAULT NULL,
   `reconciliation_diff_desc` VARCHAR(500) DEFAULT NULL,
   `attachment_url` VARCHAR(500) DEFAULT NULL,
@@ -470,9 +470,9 @@ CREATE TABLE IF NOT EXISTS `t_bill` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='账单表';
 
 CREATE TABLE IF NOT EXISTS `t_invoice` (
-  `id` VARCHAR(36) NOT NULL,
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
   `invoice_no` VARCHAR(64) NOT NULL,
-  `enterprise_id` VARCHAR(36) NOT NULL,
+  `enterprise_id` BIGINT NOT NULL,
   `invoice_type` INT NOT NULL,
   `invoice_title` VARCHAR(200) NOT NULL,
   `taxpayer_id` VARCHAR(50) DEFAULT NULL,
@@ -496,19 +496,19 @@ CREATE TABLE IF NOT EXISTS `t_invoice` (
   `payee` VARCHAR(100) DEFAULT NULL,
   `reviewer` VARCHAR(100) DEFAULT NULL,
   `audit_opinion` VARCHAR(500) DEFAULT NULL,
-  `auditor_user_id` VARCHAR(36) DEFAULT NULL,
+  `auditor_user_id` BIGINT DEFAULT NULL,
   `auditor_user_name` VARCHAR(100) DEFAULT NULL,
   `cancel_reason` VARCHAR(500) DEFAULT NULL,
   `cancel_time` DATETIME DEFAULT NULL,
-  `canceller_user_id` VARCHAR(36) DEFAULT NULL,
+  `canceller_user_id` BIGINT DEFAULT NULL,
   `canceller_user_name` VARCHAR(100) DEFAULT NULL,
-  `reissue_invoice_id` VARCHAR(36) DEFAULT NULL,
-  `original_invoice_id` VARCHAR(36) DEFAULT NULL,
+  `reissue_invoice_id` BIGINT DEFAULT NULL,
+  `original_invoice_id` BIGINT DEFAULT NULL,
   `invoice_file_url` VARCHAR(500) DEFAULT NULL,
   `invoice_file_name` VARCHAR(255) DEFAULT NULL,
   `invoice_file_size` BIGINT DEFAULT NULL,
   `related_business_type` VARCHAR(32) DEFAULT NULL,
-  `related_business_id` VARCHAR(36) DEFAULT NULL,
+  `related_business_id` BIGINT DEFAULT NULL,
   `related_business_desc` VARCHAR(255) DEFAULT NULL,
   `remark` VARCHAR(500) DEFAULT NULL,
   `is_red_invoice` TINYINT(1) NOT NULL DEFAULT 0,
@@ -534,15 +534,15 @@ CREATE TABLE IF NOT EXISTS `t_invoice` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='发票表';
 
 CREATE TABLE IF NOT EXISTS `notifications` (
-  `id` VARCHAR(36) NOT NULL,
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
   `title` VARCHAR(200) NOT NULL,
   `content` TEXT NOT NULL,
   `type` VARCHAR(50) NOT NULL,
   `status` VARCHAR(20) NOT NULL DEFAULT 'UNREAD',
-  `user_id` VARCHAR(36) DEFAULT NULL,
-  `enterprise_id` VARCHAR(36) NOT NULL,
-  `sender_id` VARCHAR(36) DEFAULT NULL,
-  `related_id` VARCHAR(36) DEFAULT NULL,
+  `user_id` BIGINT DEFAULT NULL,
+  `enterprise_id` BIGINT NOT NULL,
+  `sender_id` BIGINT DEFAULT NULL,
+  `related_id` BIGINT DEFAULT NULL,
   `related_type` VARCHAR(50) DEFAULT NULL,
   `priority` VARCHAR(20) NOT NULL DEFAULT 'NORMAL',
   `expires_at` DATETIME DEFAULT NULL,
@@ -563,7 +563,7 @@ CREATE TABLE IF NOT EXISTS `notifications` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='通知表';
 
 CREATE TABLE IF NOT EXISTS `enterprise_files` (
-  `id` VARCHAR(36) NOT NULL,
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
   `file_name` VARCHAR(255) NOT NULL,
   `original_name` VARCHAR(255) DEFAULT NULL,
   `file_type` VARCHAR(50) NOT NULL,
@@ -572,8 +572,8 @@ CREATE TABLE IF NOT EXISTS `enterprise_files` (
   `file_path` VARCHAR(500) DEFAULT NULL,
   `file_url` VARCHAR(500) DEFAULT NULL,
   `md5` VARCHAR(64) DEFAULT NULL,
-  `enterprise_id` VARCHAR(36) NOT NULL,
-  `upload_user_id` VARCHAR(36) DEFAULT NULL,
+  `enterprise_id` BIGINT NOT NULL,
+  `upload_user_id` BIGINT DEFAULT NULL,
   `status` VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
   `description` VARCHAR(500) DEFAULT NULL,
   `review_status` VARCHAR(20) NOT NULL DEFAULT 'PENDING',
@@ -594,11 +594,11 @@ CREATE TABLE IF NOT EXISTS `enterprise_files` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='企业文件表';
 
 CREATE TABLE IF NOT EXISTS `data_dict` (
-  `id` VARCHAR(36) NOT NULL,
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
   `dict_type` VARCHAR(50) NOT NULL,
   `dict_code` VARCHAR(50) NOT NULL,
   `dict_name` VARCHAR(100) NOT NULL,
-  `parent_id` VARCHAR(36) DEFAULT NULL,
+  `parent_id` BIGINT DEFAULT NULL,
   `sort_order` INT NOT NULL DEFAULT 0,
   `status` ENUM('ACTIVE', 'DISABLED') NOT NULL DEFAULT 'ACTIVE',
   `created_by` VARCHAR(36) DEFAULT NULL,

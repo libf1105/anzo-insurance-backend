@@ -10,9 +10,9 @@ import java.time.LocalDateTime;
 @Data
 public class ClaimMaterialDTO {
 
-    private String id;
+    private Long id;
 
-    private String claimId;
+    private Long claimId;
 
     private String materialType;
 
@@ -28,7 +28,7 @@ public class ClaimMaterialDTO {
 
     private String fileType;
 
-    private String uploadUserId;
+    private Long uploadUserId;
 
     private String uploadUserName;
 
@@ -38,7 +38,7 @@ public class ClaimMaterialDTO {
 
     private Boolean approved;
 
-    private String approveUserId;
+    private Long approveUserId;
 
     private String approveUserName;
 

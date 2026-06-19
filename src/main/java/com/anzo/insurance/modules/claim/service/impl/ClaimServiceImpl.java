@@ -54,7 +54,7 @@ public class ClaimServiceImpl implements ClaimService {
         claim.setEnterpriseId(SecurityUtil.getCurrentEnterpriseId());
         claim.setMaterialStatus("PENDING");
         claim.setStatus("REPORTED");
-        claim.setCreatedBy(SecurityUtil.getCurrentUserId());
+        claim.setCreatedBy(String.valueOf(SecurityUtil.getCurrentUserId()));
         
         int result = claimMapper.insert(claim);
         if (result <= 0) {
@@ -69,11 +69,11 @@ public class ClaimServiceImpl implements ClaimService {
     
     @Override
     @Transactional
-    public ClaimResponseDTO updateClaim(String claimId, ClaimUpdateDTO dto) {
+    public ClaimResponseDTO updateClaim(Long claimId, ClaimUpdateDTO dto) {
         Claim claim = getClaimEntity(claimId);
         
         BeanUtils.copyProperties(dto, claim, "id", "enterpriseId", "claimNo", "policyId", "policyNo", "insuredName");
-        claim.setUpdatedBy(SecurityUtil.getCurrentUserId());
+        claim.setUpdatedBy(String.valueOf(SecurityUtil.getCurrentUserId()));
         
         int result = claimMapper.updateById(claim);
         if (result <= 0) {
@@ -87,7 +87,7 @@ public class ClaimServiceImpl implements ClaimService {
     }
     
     @Override
-    public ClaimResponseDTO getClaim(String claimId) {
+    public ClaimResponseDTO getClaim(Long claimId) {
         Claim claim = getClaimEntity(claimId);
         return convertToResponseDTO(claim);
     }
@@ -192,7 +192,7 @@ public class ClaimServiceImpl implements ClaimService {
     
     @Override
     public ClaimStatisticsDTO getClaimStatistics() {
-        String enterpriseId = SecurityUtil.getCurrentEnterpriseId();
+        Long enterpriseId = SecurityUtil.getCurrentEnterpriseId();
         ClaimMapper.ClaimStatistics statistics = claimMapper.getClaimStatistics(enterpriseId);
         
         ClaimStatisticsDTO dto = new ClaimStatisticsDTO();
@@ -222,12 +222,12 @@ public class ClaimServiceImpl implements ClaimService {
     
     @Override
     @Transactional
-    public ClaimResponseDTO submitMaterials(String claimId, List<ClaimMaterialCreateDTO> materials) {
+    public ClaimResponseDTO submitMaterials(Long claimId, List<ClaimMaterialCreateDTO> materials) {
         Claim claim = getClaimEntity(claimId);
         
         String previousStatus = claim.getStatus();
         claim.setMaterialStatus("COMPLETE");
-        claim.setUpdatedBy(SecurityUtil.getCurrentUserId());
+        claim.setUpdatedBy(String.valueOf(SecurityUtil.getCurrentUserId()));
         
         int result = claimMapper.updateById(claim);
         if (result <= 0) {
@@ -244,7 +244,7 @@ public class ClaimServiceImpl implements ClaimService {
     
     @Override
     @Transactional
-    public ClaimResponseDTO reviewMaterials(String claimId, ClaimMaterialReviewDTO reviewDTO) {
+    public ClaimResponseDTO reviewMaterials(Long claimId, ClaimMaterialReviewDTO reviewDTO) {
         Claim claim = getClaimEntity(claimId);
         String previousStatus = claim.getStatus();
         
@@ -257,7 +257,7 @@ public class ClaimServiceImpl implements ClaimService {
             claim.setStatus("MATERIAL_INCOMPLETE");
         }
         
-        claim.setUpdatedBy(SecurityUtil.getCurrentUserId());
+        claim.setUpdatedBy(String.valueOf(SecurityUtil.getCurrentUserId()));
         claim.setStatusChangedAt(LocalDateTime.now());
         
         int result = claimMapper.updateById(claim);
@@ -276,14 +276,14 @@ public class ClaimServiceImpl implements ClaimService {
     
     @Override
     @Transactional
-    public ClaimResponseDTO assignHandler(String claimId, String handlerUserId, String handlerUserName) {
+    public ClaimResponseDTO assignHandler(Long claimId, Long handlerUserId, String handlerUserName) {
         Claim claim = getClaimEntity(claimId);
         String previousStatus = claim.getStatus();
         
         claim.setHandlerUserId(handlerUserId);
         claim.setHandlerUserName(handlerUserName);
         claim.setHandlerAssignedAt(LocalDateTime.now());
-        claim.setUpdatedBy(SecurityUtil.getCurrentUserId());
+        claim.setUpdatedBy(String.valueOf(SecurityUtil.getCurrentUserId()));
         
         int result = claimMapper.updateById(claim);
         if (result <= 0) {
@@ -300,7 +300,7 @@ public class ClaimServiceImpl implements ClaimService {
     
     @Override
     @Transactional
-    public ClaimResponseDTO submitSurveyReport(String claimId, String surveyReport) {
+    public ClaimResponseDTO submitSurveyReport(Long claimId, String surveyReport) {
         Claim claim = getClaimEntity(claimId);
         String previousStatus = claim.getStatus();
         
@@ -309,7 +309,7 @@ public class ClaimServiceImpl implements ClaimService {
         claim.setSurveyUserId(SecurityUtil.getCurrentUserId());
         claim.setSurveyUserName(SecurityUtil.getCurrentUsername());
         claim.setStatus("NEGOTIATING");
-        claim.setUpdatedBy(SecurityUtil.getCurrentUserId());
+        claim.setUpdatedBy(String.valueOf(SecurityUtil.getCurrentUserId()));
         claim.setStatusChangedAt(LocalDateTime.now());
         
         int result = claimMapper.updateById(claim);
@@ -327,7 +327,7 @@ public class ClaimServiceImpl implements ClaimService {
     
     @Override
     @Transactional
-    public ClaimResponseDTO reviewClaim(String claimId, String reviewRemark, boolean approved) {
+    public ClaimResponseDTO reviewClaim(Long claimId, String reviewRemark, boolean approved) {
         Claim claim = getClaimEntity(claimId);
         String previousStatus = claim.getStatus();
         
@@ -343,7 +343,7 @@ public class ClaimServiceImpl implements ClaimService {
             claim.setRejectReason(reviewRemark);
         }
         
-        claim.setUpdatedBy(SecurityUtil.getCurrentUserId());
+        claim.setUpdatedBy(String.valueOf(SecurityUtil.getCurrentUserId()));
         claim.setStatusChangedAt(LocalDateTime.now());
         
         int result = claimMapper.updateById(claim);
@@ -362,7 +362,7 @@ public class ClaimServiceImpl implements ClaimService {
     
     @Override
     @Transactional
-    public ClaimResponseDTO processPayment(String claimId, BigDecimal paymentAmount) {
+    public ClaimResponseDTO processPayment(Long claimId, BigDecimal paymentAmount) {
         Claim claim = getClaimEntity(claimId);
         String previousStatus = claim.getStatus();
         
@@ -372,7 +372,7 @@ public class ClaimServiceImpl implements ClaimService {
         claim.setPaymentUserId(SecurityUtil.getCurrentUserId());
         claim.setPaymentUserName(SecurityUtil.getCurrentUsername());
         claim.setStatus("PAID");
-        claim.setUpdatedBy(SecurityUtil.getCurrentUserId());
+        claim.setUpdatedBy(String.valueOf(SecurityUtil.getCurrentUserId()));
         claim.setStatusChangedAt(LocalDateTime.now());
         
         int result = claimMapper.updateById(claim);
@@ -390,13 +390,13 @@ public class ClaimServiceImpl implements ClaimService {
     
     @Override
     @Transactional
-    public ClaimResponseDTO rejectClaim(String claimId, String rejectReason) {
+    public ClaimResponseDTO rejectClaim(Long claimId, String rejectReason) {
         Claim claim = getClaimEntity(claimId);
         String previousStatus = claim.getStatus();
         
         claim.setRejectReason(rejectReason);
         claim.setStatus("REJECTED");
-        claim.setUpdatedBy(SecurityUtil.getCurrentUserId());
+        claim.setUpdatedBy(String.valueOf(SecurityUtil.getCurrentUserId()));
         claim.setStatusChangedAt(LocalDateTime.now());
         
         int result = claimMapper.updateById(claim);
@@ -414,13 +414,13 @@ public class ClaimServiceImpl implements ClaimService {
     
     @Override
     @Transactional
-    public ClaimResponseDTO withdrawClaim(String claimId, String withdrawReason) {
+    public ClaimResponseDTO withdrawClaim(Long claimId, String withdrawReason) {
         Claim claim = getClaimEntity(claimId);
         String previousStatus = claim.getStatus();
         
         claim.setWithdrawReason(withdrawReason);
         claim.setStatus("WITHDRAWN");
-        claim.setUpdatedBy(SecurityUtil.getCurrentUserId());
+        claim.setUpdatedBy(String.valueOf(SecurityUtil.getCurrentUserId()));
         claim.setStatusChangedAt(LocalDateTime.now());
         
         int result = claimMapper.updateById(claim);
@@ -437,7 +437,7 @@ public class ClaimServiceImpl implements ClaimService {
     }
     
     @Override
-    public List<ClaimProcessRecordDTO> getProcessRecords(String claimId) {
+    public List<ClaimProcessRecordDTO> getProcessRecords(Long claimId) {
         getClaimEntity(claimId);
         return claimProcessRecordMapper.findByClaimId(claimId).stream()
                 .map(this::convertToProcessRecordDTO)
@@ -446,7 +446,7 @@ public class ClaimServiceImpl implements ClaimService {
     
     @Override
     @Transactional
-    public ClaimResponseDTO addProcessRecord(String claimId, ClaimProcessRecordCreateDTO recordDTO) {
+    public ClaimResponseDTO addProcessRecord(Long claimId, ClaimProcessRecordCreateDTO recordDTO) {
         Claim claim = getClaimEntity(claimId);
         String previousStatus = claim.getStatus();
         
@@ -455,7 +455,7 @@ public class ClaimServiceImpl implements ClaimService {
             claim.setStatusChangedAt(LocalDateTime.now());
         }
         
-        claim.setUpdatedBy(SecurityUtil.getCurrentUserId());
+        claim.setUpdatedBy(String.valueOf(SecurityUtil.getCurrentUserId()));
         
         int result = claimMapper.updateById(claim);
         if (result <= 0) {
@@ -476,7 +476,7 @@ public class ClaimServiceImpl implements ClaimService {
         return convertToResponseDTO(claim);
     }
     
-    private Claim getClaimEntity(String claimId) {
+    private Claim getClaimEntity(Long claimId) {
         Claim claim = claimMapper.selectById(claimId);
         if (claim == null || claim.getDeleted()) {
             throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND.getCode(), ErrorCode.RESOURCE_NOT_FOUND.getMessage());

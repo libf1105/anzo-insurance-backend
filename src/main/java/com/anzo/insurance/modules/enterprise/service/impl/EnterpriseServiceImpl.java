@@ -37,7 +37,7 @@ public class EnterpriseServiceImpl implements EnterpriseService {
     private final UserRepository userRepository;
 
     @Override
-    public Enterprise getEnterpriseById(String enterpriseId) {
+    public Enterprise getEnterpriseById(Long enterpriseId) {
         return enterpriseRepository.selectById(enterpriseId);
     }
 
@@ -52,7 +52,7 @@ public class EnterpriseServiceImpl implements EnterpriseService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void updateEnterprise(String enterpriseId, EnterpriseUpdateDTO updateDTO) {
+    public void updateEnterprise(Long enterpriseId, EnterpriseUpdateDTO updateDTO) {
         Enterprise enterprise = enterpriseRepository.selectById(enterpriseId);
         if (enterprise == null) {
             throw new BusinessException(ErrorCode.ENTERPRISE_NOT_FOUND.getCode(), "企业不存在");
@@ -148,7 +148,7 @@ public class EnterpriseServiceImpl implements EnterpriseService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void enableEnterprise(String enterpriseId) {
+    public void enableEnterprise(Long enterpriseId) {
         Enterprise enterprise = enterpriseRepository.selectById(enterpriseId);
         if (enterprise == null) {
             throw new BusinessException(ErrorCode.ENTERPRISE_NOT_FOUND.getCode(), "企业不存在");
@@ -163,7 +163,7 @@ public class EnterpriseServiceImpl implements EnterpriseService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void disableEnterprise(String enterpriseId, String reason) {
+    public void disableEnterprise(Long enterpriseId, String reason) {
         Enterprise enterprise = enterpriseRepository.selectById(enterpriseId);
         if (enterprise == null) {
             throw new BusinessException(ErrorCode.ENTERPRISE_NOT_FOUND.getCode(), "企业不存在");
@@ -179,7 +179,7 @@ public class EnterpriseServiceImpl implements EnterpriseService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void updateEnterpriseBalance(String enterpriseId, String amount, String type) {
+    public void updateEnterpriseBalance(Long enterpriseId, String amount, String type) {
         Enterprise enterprise = enterpriseRepository.selectById(enterpriseId);
         if (enterprise == null) {
             throw new BusinessException(ErrorCode.ENTERPRISE_NOT_FOUND.getCode(), "企业不存在");
@@ -211,7 +211,7 @@ public class EnterpriseServiceImpl implements EnterpriseService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void freezeEnterpriseBalance(String enterpriseId, String amount) {
+    public void freezeEnterpriseBalance(Long enterpriseId, String amount) {
         Enterprise enterprise = enterpriseRepository.selectById(enterpriseId);
         if (enterprise == null) {
             throw new BusinessException(ErrorCode.ENTERPRISE_NOT_FOUND.getCode(), "企业不存在");
@@ -236,7 +236,7 @@ public class EnterpriseServiceImpl implements EnterpriseService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void unfreezeEnterpriseBalance(String enterpriseId, String amount) {
+    public void unfreezeEnterpriseBalance(Long enterpriseId, String amount) {
         Enterprise enterprise = enterpriseRepository.selectById(enterpriseId);
         if (enterprise == null) {
             throw new BusinessException(ErrorCode.ENTERPRISE_NOT_FOUND.getCode(), "企业不存在");
@@ -260,7 +260,7 @@ public class EnterpriseServiceImpl implements EnterpriseService {
     }
 
     @Override
-    public EnterpriseStatistics getEnterpriseStatistics(String enterpriseId) {
+    public EnterpriseStatistics getEnterpriseStatistics(Long enterpriseId) {
         Enterprise enterprise = enterpriseRepository.selectById(enterpriseId);
         if (enterprise == null) {
             throw new BusinessException(ErrorCode.ENTERPRISE_NOT_FOUND.getCode(), "企业不存在");
@@ -306,7 +306,7 @@ public class EnterpriseServiceImpl implements EnterpriseService {
     }
 
     @Override
-    public boolean checkEnterpriseStatus(String enterpriseId) {
+    public boolean checkEnterpriseStatus(Long enterpriseId) {
         Enterprise enterprise = enterpriseRepository.selectById(enterpriseId);
         if (enterprise == null) {
             return false;

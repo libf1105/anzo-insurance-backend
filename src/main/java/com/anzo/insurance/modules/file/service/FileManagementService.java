@@ -28,57 +28,57 @@ public interface FileManagementService {
     /**
      * 根据ID获取文件
      */
-    FileResponseDTO getFileById(String fileId);
+    FileResponseDTO getFileById(Long fileId);
 
     /**
      * 根据文件ID获取文件实体
      */
-    EnterpriseFile getFileEntityById(String fileId);
+    EnterpriseFile getFileEntityById(Long fileId);
 
     /**
      * 根据企业ID获取文件列表
      */
-    List<FileResponseDTO> getFilesByEnterpriseId(String enterpriseId);
+    List<FileResponseDTO> getFilesByEnterpriseId(Long enterpriseId);
 
     /**
      * 根据企业ID和文件类型获取文件列表
      */
-    List<FileResponseDTO> getFilesByEnterpriseIdAndType(String enterpriseId, String fileType);
+    List<FileResponseDTO> getFilesByEnterpriseIdAndType(Long enterpriseId, String fileType);
 
     /**
      * 分页查询文件列表
      */
-    Page<FileResponseDTO> getFilesPage(Pageable pageable, String enterpriseId, String fileType, String reviewStatus);
+    Page<FileResponseDTO> getFilesPage(Pageable pageable, Long enterpriseId, String fileType, String reviewStatus);
 
     /**
      * 删除文件（逻辑删除）
      */
-    void deleteFile(String fileId);
+    void deleteFile(Long fileId);
 
     /**
      * 下载文件
      */
-    InputStream downloadFile(String fileId);
+    InputStream downloadFile(Long fileId);
 
     /**
      * 获取文件下载流
      */
-    byte[] downloadFileBytes(String fileId);
+    byte[] downloadFileBytes(Long fileId);
 
     /**
      * 审核文件
      */
-    void reviewFile(String fileId, String reviewResult, String remark);
+    void reviewFile(Long fileId, String reviewResult, String remark);
 
     /**
      * 批量审核文件
      */
-    void batchReviewFiles(List<String> fileIds, String reviewResult, String remark);
+    void batchReviewFiles(List<Long> fileIds, String reviewResult, String remark);
 
     /**
      * 获取企业文件统计
      */
-    FileStatistics getFileStatistics(String enterpriseId);
+    FileStatistics getFileStatistics(Long enterpriseId);
 
     /**
      * 获取待审核文件列表
@@ -88,22 +88,22 @@ public interface FileManagementService {
     /**
      * 检查文件是否存在（根据MD5）
      */
-    boolean checkFileExists(String md5, String enterpriseId);
+    boolean checkFileExists(String md5, Long enterpriseId);
 
     /**
      * 获取文件访问URL
      */
-    String getFileUrl(String fileId);
+    String getFileUrl(Long fileId);
 
     /**
      * 更新文件描述
      */
-    void updateFileDescription(String fileId, String description);
+    void updateFileDescription(Long fileId, String description);
 
     /**
      * 增加下载次数
      */
-    void incrementDownloadCount(String fileId);
+    void incrementDownloadCount(Long fileId);
 
     /**
      * 文件统计信息接口

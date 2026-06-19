@@ -20,22 +20,22 @@ public interface CustomerService {
     /**
      * 更新客户
      */
-    CustomerResponseDTO updateCustomer(String customerId, CustomerUpdateDTO dto);
+    CustomerResponseDTO updateCustomer(Long customerId, CustomerUpdateDTO dto);
     
     /**
      * 获取客户详情
      */
-    CustomerResponseDTO getCustomer(String customerId);
+    CustomerResponseDTO getCustomer(Long customerId);
     
     /**
      * 删除客户
      */
-    void deleteCustomer(String customerId);
+    void deleteCustomer(Long customerId);
     
     /**
      * 批量删除客户
      */
-    void batchDeleteCustomers(List<String> customerIds);
+    void batchDeleteCustomers(List<Long> customerIds);
     
     /**
      * 分页查询客户
@@ -55,15 +55,15 @@ public interface CustomerService {
     /**
      * 根据企业ID查询客户列表
      */
-    List<CustomerResponseDTO> getCustomersByEnterprise(String enterpriseId);
+    List<CustomerResponseDTO> getCustomersByEnterprise(Long enterpriseId);
     
     /**
      * 启用/禁用客户
      */
-    CustomerResponseDTO toggleCustomerStatus(String customerId, String status);
+    CustomerResponseDTO toggleCustomerStatus(Long customerId, String status);
     
     /**
      * 根据ID获取客户实体
      */
-    Customer getCustomerEntity(String customerId);
+    Customer getCustomerEntity(Long customerId);
 }

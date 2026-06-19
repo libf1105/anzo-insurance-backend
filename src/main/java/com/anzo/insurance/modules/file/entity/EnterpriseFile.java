@@ -60,12 +60,12 @@ public class EnterpriseFile extends BaseEntity {
     /**
      * 企业ID
      */
-    private String enterpriseId;
+    private Long enterpriseId;
 
     /**
      * 上传用户ID
      */
-    private String uploadUserId;
+    private Long uploadUserId;
 
     /**
      * 文件状态

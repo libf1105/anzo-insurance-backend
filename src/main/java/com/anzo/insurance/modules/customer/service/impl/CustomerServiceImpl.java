@@ -46,7 +46,7 @@ public class CustomerServiceImpl implements CustomerService {
         BeanUtils.copyProperties(dto, customer);
         customer.setEnterpriseId(SecurityUtil.getCurrentEnterpriseId());
         customer.setStatus("ACTIVE");
-        customer.setCreatedBy(SecurityUtil.getCurrentUserId());
+        customer.setCreatedBy(String.valueOf(SecurityUtil.getCurrentUserId()));
         
         int result = customerMapper.insert(customer);
         if (result <= 0) {
@@ -58,7 +58,7 @@ public class CustomerServiceImpl implements CustomerService {
     
     @Override
     @Transactional
-    public CustomerResponseDTO updateCustomer(String customerId, CustomerUpdateDTO dto) {
+    public CustomerResponseDTO updateCustomer(Long customerId, CustomerUpdateDTO dto) {
         Customer customer = getCustomerEntity(customerId);
         
         // 检查信用代码是否已存在（排除当前客户）
@@ -71,7 +71,7 @@ public class CustomerServiceImpl implements CustomerService {
         }
         
         BeanUtils.copyProperties(dto, customer, "id", "enterpriseId");
-        customer.setUpdatedBy(SecurityUtil.getCurrentUserId());
+        customer.setUpdatedBy(String.valueOf(SecurityUtil.getCurrentUserId()));
         
         int result = customerMapper.updateById(customer);
         if (result <= 0) {
@@ -82,17 +82,17 @@ public class CustomerServiceImpl implements CustomerService {
     }
     
     @Override
-    public CustomerResponseDTO getCustomer(String customerId) {
+    public CustomerResponseDTO getCustomer(Long customerId) {
         Customer customer = getCustomerEntity(customerId);
         return convertToResponseDTO(customer);
     }
     
     @Override
     @Transactional
-    public void deleteCustomer(String customerId) {
+    public void deleteCustomer(Long customerId) {
         Customer customer = getCustomerEntity(customerId);
         customer.setDeleted(true);
-        customer.setUpdatedBy(SecurityUtil.getCurrentUserId());
+        customer.setUpdatedBy(String.valueOf(SecurityUtil.getCurrentUserId()));
         
         int result = customerMapper.updateById(customer);
         if (result <= 0) {
@@ -102,8 +102,8 @@ public class CustomerServiceImpl implements CustomerService {
     
     @Override
     @Transactional
-    public void batchDeleteCustomers(List<String> customerIds) {
-        for (String customerId : customerIds) {
+    public void batchDeleteCustomers(List<Long> customerIds) {
+        for (Long customerId : customerIds) {
             deleteCustomer(customerId);
         }
     }
@@ -156,7 +156,7 @@ public class CustomerServiceImpl implements CustomerService {
     }
     
     @Override
-    public List<CustomerResponseDTO> getCustomersByEnterprise(String enterpriseId) {
+    public List<CustomerResponseDTO> getCustomersByEnterprise(Long enterpriseId) {
         List<Customer> customers = customerMapper.findByEnterpriseId(enterpriseId);
         return customers.stream()
                 .map(this::convertToResponseDTO)
@@ -165,10 +165,10 @@ public class CustomerServiceImpl implements CustomerService {
     
     @Override
     @Transactional
-    public CustomerResponseDTO toggleCustomerStatus(String customerId, String status) {
+    public CustomerResponseDTO toggleCustomerStatus(Long customerId, String status) {
         Customer customer = getCustomerEntity(customerId);
         customer.setStatus(status);
-        customer.setUpdatedBy(SecurityUtil.getCurrentUserId());
+        customer.setUpdatedBy(String.valueOf(SecurityUtil.getCurrentUserId()));
         
         int result = customerMapper.updateById(customer);
         if (result <= 0) {
@@ -179,7 +179,7 @@ public class CustomerServiceImpl implements CustomerService {
     }
     
     @Override
-    public Customer getCustomerEntity(String customerId) {
+    public Customer getCustomerEntity(Long customerId) {
         Customer customer = customerMapper.selectById(customerId);
         if (customer == null || customer.getDeleted()) {
             throw new BusinessException(ErrorCode.CUSTOMER_NOT_FOUND.getCode(), ErrorCode.CUSTOMER_NOT_FOUND.getMessage());

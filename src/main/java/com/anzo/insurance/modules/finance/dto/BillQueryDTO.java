@@ -15,7 +15,7 @@ public class BillQueryDTO {
     /**
      * 企业ID
      */
-    private String enterpriseId;
+    private Long enterpriseId;
 
     /**
      * 企业名称（模糊查询）

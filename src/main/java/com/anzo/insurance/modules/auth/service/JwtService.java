@@ -7,10 +7,10 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -87,15 +87,15 @@ public class JwtService {
     /**
      * 提取用户ID
      */
-    public String extractUserId(String token) {
-        return extractClaim(token, claims -> claims.get("userId", String.class));
+    public Long extractUserId(String token) {
+        return extractClaim(token, claims -> claims.get("userId", Long.class));
     }
 
     /**
      * 提取企业ID
      */
-    public String extractEnterpriseId(String token) {
-        return extractClaim(token, claims -> claims.get("enterpriseId", String.class));
+    public Long extractEnterpriseId(String token) {
+        return extractClaim(token, claims -> claims.get("enterpriseId", Long.class));
     }
 
     /**
@@ -143,7 +143,13 @@ public class JwtService {
      * 获取签名密钥
      */
     private SecretKey getSignInKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
+        byte[] keyBytes;
+        try {
+            keyBytes = Decoders.BASE64.decode(secretKey);
+        } catch (RuntimeException ex) {
+            // 兼容当前环境直接配置原始字符串密钥的情况
+            keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
+        }
         return Keys.hmacShaKeyFor(keyBytes);
     }
 

@@ -40,7 +40,7 @@ public class PolicyServiceImpl extends ServiceImpl<PolicyMapper, Policy> impleme
     @Override
     public IPage<PolicyDetailDTO> queryPolicyPage(PolicyQueryDTO queryDTO) {
         // 设置企业ID（权限控制）
-        String currentEnterpriseId = SecurityUtil.getCurrentEnterpriseId();
+        Long currentEnterpriseId = SecurityUtil.getCurrentEnterpriseId();
         queryDTO.setEnterpriseId(currentEnterpriseId);
         
         // 创建查询条件
@@ -106,14 +106,14 @@ public class PolicyServiceImpl extends ServiceImpl<PolicyMapper, Policy> impleme
     }
 
     @Override
-    public PolicyDetailDTO getPolicyDetail(String id) {
+    public PolicyDetailDTO getPolicyDetail(Long id) {
         Policy policy = policyMapper.selectById(id);
         if (policy == null) {
             throw new BusinessException("保单不存在");
         }
         
         // 权限检查：只能查看自己企业的保单
-        String currentEnterpriseId = SecurityUtil.getCurrentEnterpriseId();
+        Long currentEnterpriseId = SecurityUtil.getCurrentEnterpriseId();
         if (!policy.getEnterpriseId().equals(currentEnterpriseId)) {
             throw new BusinessException("无权查看该保单");
         }
@@ -135,7 +135,7 @@ public class PolicyServiceImpl extends ServiceImpl<PolicyMapper, Policy> impleme
         }
         
         // 权限检查
-        String currentEnterpriseId = SecurityUtil.getCurrentEnterpriseId();
+        Long currentEnterpriseId = SecurityUtil.getCurrentEnterpriseId();
         if (!policy.getEnterpriseId().equals(currentEnterpriseId)) {
             throw new BusinessException("无权修改该保单");
         }
@@ -206,7 +206,7 @@ public class PolicyServiceImpl extends ServiceImpl<PolicyMapper, Policy> impleme
         }
         
         // 权限检查
-        String currentEnterpriseId = SecurityUtil.getCurrentEnterpriseId();
+        Long currentEnterpriseId = SecurityUtil.getCurrentEnterpriseId();
         if (!policy.getEnterpriseId().equals(currentEnterpriseId)) {
             throw new BusinessException("无权操作该保单");
         }
@@ -259,13 +259,13 @@ public class PolicyServiceImpl extends ServiceImpl<PolicyMapper, Policy> impleme
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void batchOperatePolicies(BatchOperationDTO batchOperationDTO) {
-        List<String> policyIds = batchOperationDTO.getPolicyIds();
+        List<Long> policyIds = batchOperationDTO.getPolicyIds();
         if (policyIds == null || policyIds.isEmpty()) {
             throw new BusinessException("请选择要操作的保单");
         }
         
         // 获取当前企业ID
-        String currentEnterpriseId = SecurityUtil.getCurrentEnterpriseId();
+        Long currentEnterpriseId = SecurityUtil.getCurrentEnterpriseId();
         
         // 批量查询保单
         List<Policy> policies = policyMapper.selectBatchIds(policyIds);
@@ -300,14 +300,14 @@ public class PolicyServiceImpl extends ServiceImpl<PolicyMapper, Policy> impleme
     }
 
     @Override
-    public String downloadPolicyFile(String id) {
+    public String downloadPolicyFile(Long id) {
         Policy policy = policyMapper.selectById(id);
         if (policy == null) {
             throw new BusinessException("保单不存在");
         }
         
         // 权限检查
-        String currentEnterpriseId = SecurityUtil.getCurrentEnterpriseId();
+        Long currentEnterpriseId = SecurityUtil.getCurrentEnterpriseId();
         if (!policy.getEnterpriseId().equals(currentEnterpriseId)) {
             throw new BusinessException("无权下载该保单");
         }
@@ -358,14 +358,14 @@ public class PolicyServiceImpl extends ServiceImpl<PolicyMapper, Policy> impleme
     }
 
     @Override
-    public void generatePolicy(String applicationId) {
+    public void generatePolicy(Long applicationId) {
         // TODO: 根据投保申请生成保单
         // 需要调用保险公司的接口生成正式保单
         // 更新保单状态为已承保
     }
 
     @Override
-    public void updatePolicyStatus(String id, Integer status, String remark) {
+    public void updatePolicyStatus(Long id, Integer status, String remark) {
         // TODO: 更新保单状态（用于保司回调等场景）
     }
 

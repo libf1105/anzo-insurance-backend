@@ -18,7 +18,7 @@ public interface PolicyService {
     /**
      * 获取保单详情
      */
-    PolicyDetailDTO getPolicyDetail(String id);
+    PolicyDetailDTO getPolicyDetail(Long id);
 
     /**
      * 修改保单信息
@@ -38,7 +38,7 @@ public interface PolicyService {
     /**
      * 下载保单文件
      */
-    String downloadPolicyFile(String id);
+    String downloadPolicyFile(Long id);
 
     /**
      * 导出保单列表
@@ -48,10 +48,10 @@ public interface PolicyService {
     /**
      * 生成保单
      */
-    void generatePolicy(String applicationId);
+    void generatePolicy(Long applicationId);
 
     /**
      * 更新保单状态
      */
-    void updatePolicyStatus(String id, Integer status, String remark);
+    void updatePolicyStatus(Long id, Integer status, String remark);
 }

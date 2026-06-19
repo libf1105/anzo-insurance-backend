@@ -57,5 +57,5 @@ public class ApplicationStep3DTO {
     private String specialTerms;
     
     @Schema(description = "投保申请ID")
-    private String applicationId;
+    private Long applicationId;
 }

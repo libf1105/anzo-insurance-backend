@@ -15,7 +15,7 @@ public class BillPayDTO {
      * 账单ID
      */
     @NotBlank(message = "账单ID不能为空")
-    private String id;
+    private Long id;
 
     /**
      * 支付金额

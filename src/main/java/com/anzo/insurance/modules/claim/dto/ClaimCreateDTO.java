@@ -17,7 +17,7 @@ public class ClaimCreateDTO {
      * 保单ID
      */
     @NotBlank(message = "保单ID不能为空")
-    private String policyId;
+    private Long policyId;
     
     /**
      * 保单号

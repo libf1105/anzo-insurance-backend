@@ -35,7 +35,7 @@ public class PolicyController {
     @ApiOperation("获取保单详情")
     @GetMapping("/{id}")
     public ApiResponse<PolicyDetailDTO> getPolicyDetail(
-            @ApiParam("保单ID") @PathVariable String id) {
+            @ApiParam("保单ID") @PathVariable Long id) {
         PolicyDetailDTO policyDetail = policyService.getPolicyDetail(id);
         return ApiResponse.success(policyDetail);
     }
@@ -64,7 +64,7 @@ public class PolicyController {
     @ApiOperation("下载保单文件")
     @GetMapping("/{id}/download")
     public ApiResponse<String> downloadPolicyFile(
-            @ApiParam("保单ID") @PathVariable String id) {
+            @ApiParam("保单ID") @PathVariable Long id) {
         String fileUrl = policyService.downloadPolicyFile(id);
         return ApiResponse.success(fileUrl);
     }

@@ -34,6 +34,10 @@ public class RegisterDTO {
     @Email(message = "邮箱格式不正确")
     @Schema(description = "联系人邮箱")
     private String contactEmail;
+
+    @NotBlank(message = "请上传营业执照")
+    @Schema(description = "营业执照文件URL", required = true)
+    private String licenseUrl;
     
     // 管理员账号信息
     @NotBlank(message = "用户名不能为空")
@@ -41,7 +45,7 @@ public class RegisterDTO {
     private String username;
     
     @NotBlank(message = "密码不能为空")
-    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[a-zA-Z\\d@$!%*?&]{8,}$", 
+    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)\\S{8,}$",
              message = "密码必须包含大小写字母和数字，长度至少8位")
     @Schema(description = "密码", required = true)
     private String password;

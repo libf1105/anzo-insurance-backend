@@ -25,29 +25,29 @@ public class ApplicationStep1DTO {
     private String insuranceProduct;
     
     @Schema(description = "保司ID，不传则自动分配")
-    private String insurerId;
+    private Long insurerId;
     
     @NotBlank(message = "投保人不能为空")
     @Schema(description = "投保人客户ID", required = true)
-    private String applicantId;
+    private Long applicantId;
     
     @NotBlank(message = "被保险人不能为空")
     @Schema(description = "被保险人客户ID", required = true)
-    private String insuredId;
+    private Long insuredId;
     
     @NotNull(message = "同投保人标志不能为空")
     @Schema(description = "被保险人是否同投保人", defaultValue = "false")
     private Boolean insuredSameAsApplicant = false;
     
     @Schema(description = "投保申请ID，续写草稿时传入")
-    private String applicationId;
+    private Long applicationId;
     
     @Schema(description = "草稿ID，续写时传入")
-    private String draftId;
+    private Long draftId;
     
     @Schema(description = "模板ID，从模板创建时传入")
-    private String templateId;
+    private Long templateId;
     
     @Schema(description = "历史投保ID，从历史创建时传入")
-    private String historyId;
+    private Long historyId;
 }

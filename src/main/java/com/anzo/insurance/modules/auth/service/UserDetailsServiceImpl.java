@@ -53,7 +53,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     /**
      * 根据用户ID加载用户信息
      */
-    public UserDetails loadUserById(String userId) {
+    public UserDetails loadUserById(Long userId) {
         User user = userRepository.selectById(userId);
         if (user == null) {
             throw new BusinessException(ErrorCode.USER_NOT_FOUND.getCode(), "用户不存在");

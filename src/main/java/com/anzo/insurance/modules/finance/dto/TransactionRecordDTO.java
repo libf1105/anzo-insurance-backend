@@ -13,7 +13,7 @@ public class TransactionRecordDTO {
     /**
      * 交易ID
      */
-    private String id;
+    private Long id;
 
     /**
      * 交易流水号
@@ -23,12 +23,12 @@ public class TransactionRecordDTO {
     /**
      * 钱包ID
      */
-    private String walletId;
+    private Long walletId;
 
     /**
      * 企业ID
      */
-    private String enterpriseId;
+    private Long enterpriseId;
 
     /**
      * 企业名称
@@ -83,7 +83,7 @@ public class TransactionRecordDTO {
     /**
      * 业务ID（保单ID、申请单ID等）
      */
-    private String businessId;
+    private Long businessId;
 
     /**
      * 业务描述
@@ -123,7 +123,7 @@ public class TransactionRecordDTO {
     /**
      * 操作人用户ID
      */
-    private String operatorUserId;
+    private Long operatorUserId;
 
     /**
      * 操作人用户名

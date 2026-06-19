@@ -47,8 +47,8 @@ public class InsuranceServiceImpl extends ServiceImpl<InsuranceApplicationMapper
     @Override
     @Transactional(rollbackFor = Exception.class)
     public InsuranceApplication saveStep1(ApplicationStep1DTO dto) {
-        String enterpriseId = getCurrentEnterpriseId();
-        String applicationId = resolveApplicationId(dto);
+        Long enterpriseId = getCurrentEnterpriseId();
+        Long applicationId = resolveApplicationId(dto);
 
         InsuranceApplication application;
         if (applicationId != null) {
@@ -89,7 +89,7 @@ public class InsuranceServiceImpl extends ServiceImpl<InsuranceApplicationMapper
             throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND.getCode(), "投保申请不存在");
         }
 
-        String enterpriseId = getCurrentEnterpriseId();
+        Long enterpriseId = getCurrentEnterpriseId();
         if (!application.getEnterpriseId().equals(enterpriseId)) {
             throw new BusinessException(ErrorCode.PERMISSION_DENIED.getCode(), "无权操作");
         }
@@ -117,7 +117,7 @@ public class InsuranceServiceImpl extends ServiceImpl<InsuranceApplicationMapper
             throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND.getCode(), "投保申请不存在");
         }
 
-        String enterpriseId = getCurrentEnterpriseId();
+        Long enterpriseId = getCurrentEnterpriseId();
         if (!application.getEnterpriseId().equals(enterpriseId)) {
             throw new BusinessException(ErrorCode.PERMISSION_DENIED.getCode(), "无权操作");
         }
@@ -181,7 +181,7 @@ public class InsuranceServiceImpl extends ServiceImpl<InsuranceApplicationMapper
             if (application == null || Boolean.TRUE.equals(application.getDeleted())) {
                 throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND.getCode(), "投保申请不存在");
             }
-            String enterpriseId = getCurrentEnterpriseId();
+            Long enterpriseId = getCurrentEnterpriseId();
             if (!enterpriseId.equals(application.getEnterpriseId())) {
                 throw new BusinessException(ErrorCode.PERMISSION_DENIED.getCode(), "无权操作");
             }
@@ -197,13 +197,13 @@ public class InsuranceServiceImpl extends ServiceImpl<InsuranceApplicationMapper
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public InsuranceApplication submitApplication(String applicationId, SubmitApplicationDTO dto) {
+    public InsuranceApplication submitApplication(Long applicationId, SubmitApplicationDTO dto) {
         InsuranceApplication application = getById(applicationId);
         if (application == null || Boolean.TRUE.equals(application.getDeleted())) {
             throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND.getCode(), "投保申请不存在");
         }
 
-        String enterpriseId = getCurrentEnterpriseId();
+        Long enterpriseId = getCurrentEnterpriseId();
         if (!application.getEnterpriseId().equals(enterpriseId)) {
             throw new BusinessException(ErrorCode.PERMISSION_DENIED.getCode(), "无权操作");
         }
@@ -230,13 +230,13 @@ public class InsuranceServiceImpl extends ServiceImpl<InsuranceApplicationMapper
     }
 
     @Override
-    public InsuranceApplication getApplication(String id) {
+    public InsuranceApplication getApplication(Long id) {
         InsuranceApplication application = getById(id);
         if (application == null || Boolean.TRUE.equals(application.getDeleted())) {
             throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND.getCode(), "投保申请不存在");
         }
 
-        String enterpriseId = getCurrentEnterpriseId();
+        Long enterpriseId = getCurrentEnterpriseId();
         if (!application.getEnterpriseId().equals(enterpriseId)) {
             throw new BusinessException(ErrorCode.PERMISSION_DENIED.getCode(), "无权查看");
         }
@@ -247,18 +247,18 @@ public class InsuranceServiceImpl extends ServiceImpl<InsuranceApplicationMapper
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void deleteApplication(String applicationId) {
+    public void deleteApplication(Long applicationId) {
         InsuranceApplication application = getApplication(applicationId);
         validateDraftEditable(application);
 
         application.setDeleted(true);
-        application.setUpdatedBy(SecurityUtil.getCurrentUserId());
+        application.setUpdatedBy(String.valueOf(SecurityUtil.getCurrentUserId()));
         updateById(application);
     }
 
     @Override
     public Page<InsuranceApplication> getApplications(ApplicationQueryDTO query) {
-        String enterpriseId = getCurrentEnterpriseId();
+        Long enterpriseId = getCurrentEnterpriseId();
 
         Page<InsuranceApplication> page = new Page<>(query.getPage(), query.getPageSize());
         LambdaQueryWrapper<InsuranceApplication> wrapper = new LambdaQueryWrapper<>();
@@ -309,7 +309,7 @@ public class InsuranceServiceImpl extends ServiceImpl<InsuranceApplicationMapper
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public InsuranceApplication cancelApplication(String applicationId, String reason) {
+    public InsuranceApplication cancelApplication(Long applicationId, String reason) {
         InsuranceApplication application = getApplication(applicationId);
 
         String status = application.getStatus();
@@ -330,9 +330,9 @@ public class InsuranceServiceImpl extends ServiceImpl<InsuranceApplicationMapper
     @Override
     @Transactional(rollbackFor = Exception.class)
     public InsuranceDraftDTO saveDraft(InsuranceDraftDTO dto) {
-        String enterpriseId = getCurrentEnterpriseId();
-        String userId = SecurityUtil.getCurrentUserId();
-        String applicationId = resolveDraftApplicationId(dto);
+        Long enterpriseId = getCurrentEnterpriseId();
+        Long userId = SecurityUtil.getCurrentUserId();
+        Long applicationId = resolveDraftApplicationId(dto);
 
         InsuranceApplication application = applicationId == null ? null : getById(applicationId);
         if (application == null) {
@@ -362,11 +362,11 @@ public class InsuranceServiceImpl extends ServiceImpl<InsuranceApplicationMapper
 
     @Override
     public List<InsuranceDraftDTO> getDrafts() {
-        String enterpriseId = getCurrentEnterpriseId();
-        String userId = SecurityUtil.getCurrentUserId();
+        Long enterpriseId = getCurrentEnterpriseId();
+        Long userId = SecurityUtil.getCurrentUserId();
         LambdaQueryWrapper<InsuranceApplication> wrapper = new LambdaQueryWrapper<InsuranceApplication>()
                 .eq(InsuranceApplication::getEnterpriseId, enterpriseId)
-                .eq(InsuranceApplication::getCreatedBy, userId)
+                .eq(InsuranceApplication::getCreatedBy, String.valueOf(userId))
                 .eq(InsuranceApplication::getStatus, InsuranceApplication.Status.DRAFT.getValue())
                 .eq(InsuranceApplication::getDeleted, false)
                 .orderByDesc(InsuranceApplication::getUpdatedAt);
@@ -379,9 +379,9 @@ public class InsuranceServiceImpl extends ServiceImpl<InsuranceApplicationMapper
     }
 
     @Override
-    public InsuranceDraftDTO getDraft(String draftId) {
-        String enterpriseId = getCurrentEnterpriseId();
-        String userId = SecurityUtil.getCurrentUserId();
+    public InsuranceDraftDTO getDraft(Long draftId) {
+        Long enterpriseId = getCurrentEnterpriseId();
+        Long userId = SecurityUtil.getCurrentUserId();
         InsuranceApplication draft = getById(draftId);
         if (draft == null || Boolean.TRUE.equals(draft.getDeleted())
                 || !InsuranceApplication.Status.DRAFT.getValue().equals(draft.getStatus())) {
@@ -393,9 +393,9 @@ public class InsuranceServiceImpl extends ServiceImpl<InsuranceApplicationMapper
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public boolean deleteDraft(String draftId) {
-        String enterpriseId = getCurrentEnterpriseId();
-        String userId = SecurityUtil.getCurrentUserId();
+    public boolean deleteDraft(Long draftId) {
+        Long enterpriseId = getCurrentEnterpriseId();
+        Long userId = SecurityUtil.getCurrentUserId();
         InsuranceApplication draft = getById(draftId);
         if (draft == null || Boolean.TRUE.equals(draft.getDeleted())
                 || !InsuranceApplication.Status.DRAFT.getValue().equals(draft.getStatus())) {
@@ -403,13 +403,13 @@ public class InsuranceServiceImpl extends ServiceImpl<InsuranceApplicationMapper
         }
         validateDraftOwnership(draft, enterpriseId, userId);
         draft.setDeleted(true);
-        draft.setUpdatedBy(userId);
+        draft.setUpdatedBy(String.valueOf(userId));
         return updateById(draft);
     }
 
     @Override
     public InsuranceTemplateDTO createTemplate(InsuranceTemplateDTO dto) {
-        String enterpriseId = getCurrentEnterpriseId();
+        Long enterpriseId = getCurrentEnterpriseId();
         ApplicationTemplate template = dto.getId() == null ? null : applicationTemplateMapper.selectById(dto.getId());
         if (template == null) {
             template = new ApplicationTemplate();
@@ -444,7 +444,7 @@ public class InsuranceServiceImpl extends ServiceImpl<InsuranceApplicationMapper
 
     @Override
     public List<InsuranceTemplateDTO> getTemplates() {
-        String enterpriseId = getCurrentEnterpriseId();
+        Long enterpriseId = getCurrentEnterpriseId();
         LambdaQueryWrapper<ApplicationTemplate> wrapper = new LambdaQueryWrapper<ApplicationTemplate>()
                 .eq(ApplicationTemplate::getEnterpriseId, enterpriseId)
                 .orderByDesc(ApplicationTemplate::getUpdatedAt);
@@ -457,8 +457,8 @@ public class InsuranceServiceImpl extends ServiceImpl<InsuranceApplicationMapper
     }
 
     @Override
-    public InsuranceTemplateDTO getTemplate(String templateId) {
-        String enterpriseId = getCurrentEnterpriseId();
+    public InsuranceTemplateDTO getTemplate(Long templateId) {
+        Long enterpriseId = getCurrentEnterpriseId();
         ApplicationTemplate template = applicationTemplateMapper.selectById(templateId);
         if (template == null) {
             throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND.getCode(), "投保模板不存在");
@@ -468,8 +468,8 @@ public class InsuranceServiceImpl extends ServiceImpl<InsuranceApplicationMapper
     }
 
     @Override
-    public boolean deleteTemplate(String templateId) {
-        String enterpriseId = getCurrentEnterpriseId();
+    public boolean deleteTemplate(Long templateId) {
+        Long enterpriseId = getCurrentEnterpriseId();
         ApplicationTemplate template = applicationTemplateMapper.selectById(templateId);
         if (template == null) {
             throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND.getCode(), "投保模板不存在");
@@ -478,9 +478,9 @@ public class InsuranceServiceImpl extends ServiceImpl<InsuranceApplicationMapper
         return applicationTemplateMapper.deleteById(templateId) > 0;
     }
 
-    private String getCurrentEnterpriseId() {
-        String enterpriseId = SecurityUtil.getCurrentEnterpriseId();
-        if (enterpriseId == null || enterpriseId.isBlank()) {
+    private Long getCurrentEnterpriseId() {
+        Long enterpriseId = SecurityUtil.getCurrentEnterpriseId();
+        if (enterpriseId == null) {
             throw new BusinessException(ErrorCode.UNAUTHORIZED.getCode(), "当前用户未登录");
         }
         return enterpriseId;
@@ -526,7 +526,7 @@ public class InsuranceServiceImpl extends ServiceImpl<InsuranceApplicationMapper
     private BigDecimal calculatePremiumAmount(String tradeDirection, String transportType,
                                               String insuranceProduct, String cargoCategory,
                                               BigDecimal insuranceAmount, BigDecimal additionRatio,
-                                              String insurerId) {
+                                              Long insurerId) {
         BigDecimal baseRate = BigDecimal.valueOf(0.0025);
 
         if ("AIR".equals(transportType)) {
@@ -559,7 +559,7 @@ public class InsuranceServiceImpl extends ServiceImpl<InsuranceApplicationMapper
 
     private BigDecimal calculateRate(String tradeDirection, String transportType,
                                      String insuranceProduct, String cargoCategory,
-                                     String insurerId) {
+                                     Long insurerId) {
         BigDecimal baseRate = BigDecimal.valueOf(2.5);
 
         if ("AIR".equals(transportType)) {
@@ -626,14 +626,14 @@ public class InsuranceServiceImpl extends ServiceImpl<InsuranceApplicationMapper
         if (application == null) {
             return;
         }
-        if (application.getApplicantId() != null && !application.getApplicantId().isBlank()) {
+        if (application.getApplicantId() != null) {
             Customer applicant = customerMapper.selectById(application.getApplicantId());
             if (applicant != null && !Boolean.TRUE.equals(applicant.getDeleted())) {
                 application.setApplicantName(applicant.getName());
                 application.setApplicantPhone(applicant.getContactPhone());
             }
         }
-        if (application.getInsuredId() != null && !application.getInsuredId().isBlank()) {
+        if (application.getInsuredId() != null) {
             Customer insured = customerMapper.selectById(application.getInsuredId());
             if (insured != null && !Boolean.TRUE.equals(insured.getDeleted())) {
                 application.setInsuredName(insured.getName());
@@ -679,16 +679,17 @@ public class InsuranceServiceImpl extends ServiceImpl<InsuranceApplicationMapper
         return dto;
     }
 
-    private void validateDraftOwnership(InsuranceApplication draft, String enterpriseId, String userId) {
+    private void validateDraftOwnership(InsuranceApplication draft, Long enterpriseId, Long userId) {
         if (!enterpriseId.equals(draft.getEnterpriseId())) {
             throw new BusinessException(ErrorCode.PERMISSION_DENIED.getCode(), "无权操作该投保草稿");
         }
-        if (draft.getCreatedBy() != null && !draft.getCreatedBy().isBlank() && !userId.equals(draft.getCreatedBy())) {
+        if (draft.getCreatedBy() != null && !draft.getCreatedBy().isBlank()
+                && !String.valueOf(userId).equals(draft.getCreatedBy())) {
             throw new BusinessException(ErrorCode.PERMISSION_DENIED.getCode(), "无权操作该投保草稿");
         }
     }
 
-    private void validateTemplateOwnership(ApplicationTemplate template, String enterpriseId) {
+    private void validateTemplateOwnership(ApplicationTemplate template, Long enterpriseId) {
         if (!enterpriseId.equals(template.getEnterpriseId())) {
             throw new BusinessException(ErrorCode.PERMISSION_DENIED.getCode(), "无权操作该投保模板");
         }
@@ -703,21 +704,21 @@ public class InsuranceServiceImpl extends ServiceImpl<InsuranceApplicationMapper
         }
     }
 
-    private String resolveApplicationId(ApplicationStep1DTO dto) {
-        if (dto.getApplicationId() != null && !dto.getApplicationId().isBlank()) {
+    private Long resolveApplicationId(ApplicationStep1DTO dto) {
+        if (dto.getApplicationId() != null) {
             return dto.getApplicationId();
         }
-        if (dto.getDraftId() != null && !dto.getDraftId().isBlank()) {
+        if (dto.getDraftId() != null) {
             return dto.getDraftId();
         }
         return null;
     }
 
-    private String resolveDraftApplicationId(InsuranceDraftDTO dto) {
-        if (dto.getId() != null && !dto.getId().isBlank()) {
+    private Long resolveDraftApplicationId(InsuranceDraftDTO dto) {
+        if (dto.getId() != null) {
             return dto.getId();
         }
-        return getString(dto.getStep1Data(), "applicationId");
+        return getLong(dto.getStep1Data(), "applicationId");
     }
 
     private void applyDraftData(InsuranceApplication application, InsuranceDraftDTO dto) {
@@ -729,14 +730,14 @@ public class InsuranceServiceImpl extends ServiceImpl<InsuranceApplicationMapper
             application.setTradeDirection(getString(step1Data, "tradeDirection"));
             application.setTransportType(getString(step1Data, "transportType"));
             application.setInsuranceProduct(getString(step1Data, "insuranceProduct"));
-            application.setInsurerId(getString(step1Data, "insurerId"));
-            String applicantId = getString(step1Data, "applicantId");
+            application.setInsurerId(getLong(step1Data, "insurerId"));
+            Long applicantId = getLong(step1Data, "applicantId");
             application.setApplicantId(applicantId);
             Boolean insuredSameAsApplicant = getBoolean(step1Data, "insuredSameAsApplicant");
             if (Boolean.TRUE.equals(insuredSameAsApplicant) && applicantId != null) {
                 application.setInsuredId(applicantId);
             } else {
-                application.setInsuredId(getString(step1Data, "insuredId"));
+                application.setInsuredId(getLong(step1Data, "insuredId"));
             }
         }
 
@@ -768,7 +769,7 @@ public class InsuranceServiceImpl extends ServiceImpl<InsuranceApplicationMapper
 
     private int resolveDraftCurrentStep(InsuranceApplication application) {
         if (isBlank(application.getTradeDirection()) || isBlank(application.getTransportType())
-                || isBlank(application.getInsuranceProduct()) || isBlank(application.getApplicantId())) {
+                || isBlank(application.getInsuranceProduct()) || application.getApplicantId() == null) {
             return 1;
         }
         if (isBlank(application.getDepartureCountry()) || application.getDepartureDate() == null) {
@@ -845,8 +846,8 @@ public class InsuranceServiceImpl extends ServiceImpl<InsuranceApplicationMapper
         }
     }
 
-    private String getCustomerName(String customerId) {
-        if (customerId == null || customerId.isBlank()) {
+    private String getCustomerName(Long customerId) {
+        if (customerId == null) {
             return null;
         }
         Customer customer = customerMapper.selectById(customerId);
@@ -854,6 +855,18 @@ public class InsuranceServiceImpl extends ServiceImpl<InsuranceApplicationMapper
             return null;
         }
         return customer.getName();
+    }
+
+    private Long getLong(Map<String, Object> data, String key) {
+        String value = getString(data, key);
+        if (value == null) {
+            return null;
+        }
+        try {
+            return Long.valueOf(value);
+        } catch (NumberFormatException e) {
+            throw new BusinessException(ErrorCode.PARAM_ERROR.getCode(), "投保草稿编号数据格式不正确");
+        }
     }
 
     private String getString(Map<String, Object> data, String key) {
