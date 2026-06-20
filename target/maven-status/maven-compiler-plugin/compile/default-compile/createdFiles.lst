@@ -110,6 +110,7 @@ com/anzo/insurance/modules/claim/dto/ClaimMaterialDTO.class
 com/anzo/insurance/modules/insurance/dto/ApplicationQueryDTO.class
 com/anzo/insurance/modules/claim/dto/ClaimProcessRecordDTO.class
 com/anzo/insurance/modules/claim/controller/ClaimController$ClaimReviewDTO.class
+com/anzo/insurance/common/util/RedisTokenUtil.class
 com/anzo/insurance/modules/policy/service/impl/PolicyServiceImpl.class
 com/anzo/insurance/modules/enterprise/controller/UserManagementController.class
 com/anzo/insurance/modules/auth/dto/ResetPasswordDTO.class
@@ -159,7 +160,6 @@ com/anzo/insurance/modules/claim/service/ClaimService.class
 com/anzo/insurance/modules/file/repository/EnterpriseFileRepository$FileStatistics.class
 com/anzo/insurance/modules/insurance/entity/InsuranceApplication$InsuranceProduct.class
 com/anzo/insurance/modules/insurance/dto/InsuranceTemplateDTO.class
-com/anzo/insurance/common/util/JwtUtil.class
 com/anzo/insurance/modules/message/service/impl/NotificationServiceImpl$1.class
 com/anzo/insurance/common/response/ApiResponse.class
 com/anzo/insurance/modules/insurance/dto/InsuranceDraftDTO.class

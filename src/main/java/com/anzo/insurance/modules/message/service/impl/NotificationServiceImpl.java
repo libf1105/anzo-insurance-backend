@@ -46,7 +46,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional(rollbackFor = Exception.class)
     public NotificationDTO createNotification(NotificationDTO notificationDTO) {
         // 获取当前用户
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        String username = ((User)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
         User currentUser = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND.getCode(), "用户不存在"));
         
@@ -238,7 +238,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional(rollbackFor = Exception.class)
     public void sendSystemNotification(String title, String content, Long enterpriseId, List<Long> userIds) {
         // 获取当前用户
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        String username = ((User)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
         User currentUser = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND.getCode(), "用户不存在"));
         
@@ -726,7 +726,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     private void checkNotificationAccessPermission(Notification notification) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        String username = ((User)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND.getCode(), "用户不存在"));
         
@@ -748,7 +748,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     private void checkNotificationDeletePermission(Notification notification) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        String username = ((User)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND.getCode(), "用户不存在"));
         
@@ -764,7 +764,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     private void checkUserAccessPermission(Long targetUserId) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        String username = ((User)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND.getCode(), "用户不存在"));
         
@@ -780,7 +780,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     private void checkEnterpriseAccessPermission(Long targetEnterpriseId) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        String username = ((User)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND.getCode(), "用户不存在"));
         

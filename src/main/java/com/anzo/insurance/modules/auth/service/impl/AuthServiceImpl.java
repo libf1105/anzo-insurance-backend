@@ -6,6 +6,7 @@ import com.anzo.insurance.common.config.MinioProperties;
 import com.anzo.insurance.common.storage.MinioStorageService;
 import com.anzo.insurance.common.exception.BusinessException;
 import com.anzo.insurance.common.exception.ErrorCode;
+import com.anzo.insurance.common.util.RedisTokenUtil;
 import com.anzo.insurance.modules.auth.dto.AuthResponseDTO;
 import com.anzo.insurance.modules.auth.dto.ChangePasswordDTO;
 import com.anzo.insurance.modules.auth.dto.LoginDTO;
@@ -30,11 +31,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.math.BigDecimal;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -45,6 +41,7 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
+    private static final int MAX_LOGIN_FAILURES = 5;
 
     private final UserRepository userRepository;
     private final EnterpriseRepository enterpriseRepository;
@@ -53,12 +50,12 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final MinioStorageService minioStorageService;
     private final MinioProperties minioProperties;
+    private final RedisTokenUtil tokenRedisService;
 
     private static final long MAX_LICENSE_SIZE = 10 * 1024 * 1024L;
     private static final List<String> ALLOWED_LICENSE_TYPES = List.of(
             "image/jpeg", "image/png", "image/webp", "application/pdf"
     );
-    private static final HttpClient DEBUG_HTTP_CLIENT = HttpClient.newHttpClient();
 
     @Override
     public AuthResponseDTO login(LoginDTO loginDTO) {
@@ -68,6 +65,11 @@ public class AuthServiceImpl implements AuthService {
         // 验证用户状态
         if (!User.Status.ACTIVE.getValue().equals(user.getStatus())) {
             throw new BusinessException(ErrorCode.USER_DISABLED.getCode(), "用户已被禁用");
+        }
+
+        // 检查是否被锁定
+        if (tokenRedisService.isLoginLocked(loginDTO.getUsername(), MAX_LOGIN_FAILURES)) {
+            throw new BusinessException(ErrorCode.MAX_LOGIN_FAILURES.getCode(), "登录失败次数过多，账户已被锁定15分钟");
         }
 
         // 验证企业状态
@@ -83,6 +85,7 @@ public class AuthServiceImpl implements AuthService {
 
         // 验证密码
         if (!passwordEncoder.matches(loginDTO.getPassword(), user.getPasswordHash())) {
+            tokenRedisService.recordLoginFailure(loginDTO.getUsername());
             throw new BusinessException(ErrorCode.PASSWORD_ERROR.getCode(), "密码错误");
         }
 
@@ -93,16 +96,28 @@ public class AuthServiceImpl implements AuthService {
                         loginDTO.getPassword()
                 )
         );
-        
+
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         // 更新最后登录时间
         user.setLastLoginAt(LocalDateTime.now());
         userRepository.updateById(user);
 
+        // 获取当前Token版本号
+        Long currentVersion = tokenRedisService.getTokenVersion(user.getId());
+        
         // 生成JWT令牌
-        String token = jwtService.generateToken(user);
+        String token = jwtService.generateToken(user, currentVersion);
         String refreshToken = jwtService.generateRefreshToken(user);
+
+        // 存储 RefreshToken 到 Redis
+        tokenRedisService.storeRefreshToken(
+                user.getId(),
+                refreshToken,
+                jwtService.getRefreshExpirationTime()
+        );
+        // 清除失败计数
+        tokenRedisService.clearLoginFailure(loginDTO.getUsername());
 
         return buildAuthResponse(user, enterprise, token, refreshToken);
     }
@@ -129,10 +144,6 @@ public class AuthServiceImpl implements AuthService {
         enterprise.setContactEmail(registerDTO.getContactEmail());
         enterprise.setLicenseUrl(registerDTO.getLicenseUrl());
         enterprise.setStatus(Enterprise.Status.PENDING_REVIEW.getValue());
-        enterprise.setBalance(BigDecimal.ZERO);
-        enterprise.setFrozenBalance(BigDecimal.ZERO);
-        enterprise.setTotalRecharged(BigDecimal.ZERO);
-        enterprise.setTotalConsumed(BigDecimal.ZERO);
         enterprise.setCreatedAt(LocalDateTime.now());
 
         enterpriseRepository.insert(enterprise);
@@ -151,8 +162,11 @@ public class AuthServiceImpl implements AuthService {
 
         userRepository.insert(user);
 
+        // 获取Token版本号（新用户默认为0）
+        Long currentVersion = tokenRedisService.getTokenVersion(user.getId());
+        
         // 生成JWT令牌
-        String token = jwtService.generateToken(user);
+        String token = jwtService.generateToken(user, currentVersion);
         String refreshToken = jwtService.generateRefreshToken(user);
 
         return buildAuthResponse(user, enterprise, token, refreshToken);
@@ -187,11 +201,19 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void logout() {
-        // 清除安全上下文
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated()) {
+            String username = ((User)authentication.getPrincipal()).getUsername();
+            User user = userRepository.findByUsername(username).orElse(null);
+            if (user != null) {
+                // 删除 Redis 中的 Refresh Token
+                tokenRedisService.removeRefreshToken(user.getId());
+                // 递增Token版本号，使所有旧Token失效
+                tokenRedisService.incrementTokenVersion(user.getId());
+                log.info("用户 {} 已登出，所有 Token 已失效", username);
+            }
+        }
         SecurityContextHolder.clearContext();
-        
-        // 可以从Redis中删除token（如果需要实现单点登出）
-        log.info("用户已登出");
     }
 
     @Override
@@ -221,43 +243,46 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(ErrorCode.TOKEN_INVALID.getCode(), "刷新令牌已失效");
         }
 
+        // 验证 Redis 中存储的 Refresh Token
+        if (!tokenRedisService.validateRefreshToken(user.getId(), refreshToken)) {
+            throw new BusinessException(ErrorCode.TOKEN_INVALID.getCode(), "刷新令牌不匹配或已过期");
+        }
+
         // 获取企业信息
         Enterprise enterprise = enterpriseRepository.selectById(user.getEnterpriseId());
         if (enterprise == null) {
             throw new BusinessException(ErrorCode.ENTERPRISE_NOT_FOUND.getCode(), "企业不存在");
         }
 
-        // 生成新的access token
-        String newToken = jwtService.generateToken(user);
+        // 获取当前Token版本号
+        Long currentVersion = tokenRedisService.getTokenVersion(user.getId());
+        
+        // 生成新的access token和refresh token
+        String newToken = jwtService.generateToken(user, currentVersion);
+        String newRefreshToken = jwtService.generateRefreshToken(user);
 
-        return buildAuthResponse(user, enterprise, newToken, refreshToken);
+        // 更新 Redis 中的 Refresh Token
+        tokenRedisService.storeRefreshToken(
+                user.getId(),
+                newRefreshToken,
+                jwtService.getRefreshExpirationTime()
+        );
+
+        return buildAuthResponse(user, enterprise, newToken, newRefreshToken);
     }
 
     @Override
     public AuthResponseDTO getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        // #region debug-point A:get-current-user-auth
-        sendDebugEvent("A", "pre-fix", "src/main/java/com/anzo/insurance/modules/auth/service/impl/AuthServiceImpl.java:237",
-                "[DEBUG] getCurrentUser authentication snapshot",
-                "{\"authenticated\":" + (authentication != null && authentication.isAuthenticated())
-                        + ",\"principalType\":\"" + safeJson(authentication == null || authentication.getPrincipal() == null
-                        ? "null" : authentication.getPrincipal().getClass().getName())
-                        + "\",\"name\":\"" + safeJson(authentication == null ? null : authentication.getName()) + "\"}");
-        // #endregion
         
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new BusinessException(ErrorCode.UNAUTHORIZED.getCode(), "用户未登录");
         }
 
-        String username = authentication.getName();
+        String username = ((User)authentication.getPrincipal()).getUsername();
+        // String username = authentication.getName();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND.getCode(), "用户不存在"));
-        // #region debug-point A:get-current-user-result
-        sendDebugEvent("A", "pre-fix", "src/main/java/com/anzo/insurance/modules/auth/service/impl/AuthServiceImpl.java:248",
-                "[DEBUG] getCurrentUser user resolved",
-                "{\"username\":\"" + safeJson(username) + "\",\"userId\":" + user.getId()
-                        + ",\"enterpriseId\":" + user.getEnterpriseId() + "}");
-        // #endregion
 
         // 获取企业信息
         Enterprise enterprise = enterpriseRepository.selectById(user.getEnterpriseId());
@@ -266,34 +291,6 @@ public class AuthServiceImpl implements AuthService {
         }
 
         return buildAuthResponse(user, enterprise, null, null);
-    }
-
-    private void sendDebugEvent(String hypothesisId, String runId, String location, String msg, String dataJson) {
-        try {
-            String body = "{"
-                    + "\"sessionId\":\"user-not-found-logout\","
-                    + "\"runId\":\"" + runId + "\","
-                    + "\"hypothesisId\":\"" + hypothesisId + "\","
-                    + "\"location\":\"" + location + "\","
-                    + "\"msg\":\"" + msg + "\","
-                    + "\"data\":" + dataJson + ","
-                    + "\"ts\":" + System.currentTimeMillis()
-                    + "}";
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("http://127.0.0.1:7777/event"))
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(body))
-                    .build();
-            DEBUG_HTTP_CLIENT.sendAsync(request, HttpResponse.BodyHandlers.discarding());
-        } catch (Exception ignored) {
-        }
-    }
-
-    private String safeJson(String value) {
-        if (value == null) {
-            return "";
-        }
-        return value.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
     @Override
@@ -332,6 +329,10 @@ public class AuthServiceImpl implements AuthService {
         user.setPasswordHash(passwordEncoder.encode(changePasswordDTO.getNewPassword()));
         user.setUpdatedAt(LocalDateTime.now());
         userRepository.updateById(user);
+
+        // 递增 Token 版本号，使所有旧 Token 失效
+        tokenRedisService.incrementTokenVersion(user.getId());
+        log.info("用户 {} 修改密码成功，所有旧 Token 已失效", user.getUsername());
     }
 
     @Override
@@ -346,6 +347,10 @@ public class AuthServiceImpl implements AuthService {
         user.setPasswordHash(passwordEncoder.encode(resetPasswordDTO.getNewPassword()));
         user.setUpdatedAt(LocalDateTime.now());
         userRepository.updateById(user);
+        
+        // 递增Token版本号，使所有旧Token失效
+        tokenRedisService.incrementTokenVersion(user.getId());
+        log.info("用户 {} 重置密码成功，所有旧 Token 已失效", user.getUsername());
     }
 
     private User getCurrentUserEntity() {
@@ -354,7 +359,7 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(ErrorCode.UNAUTHORIZED.getCode(), "用户未登录");
         }
 
-        String username = authentication.getName();
+        String username = ((User)authentication.getPrincipal()).getUsername();
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND.getCode(), "用户不存在"));
     }

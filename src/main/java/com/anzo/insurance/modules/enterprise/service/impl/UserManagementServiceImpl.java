@@ -115,7 +115,7 @@ public class UserManagementServiceImpl implements UserManagementService {
         }
 
         // 验证当前用户权限（必须是管理员）
-        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        String currentUsername = ((User)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
         User currentUser = userRepository.findByUsername(currentUsername)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND.getCode(), "当前用户不存在"));
         
@@ -176,7 +176,7 @@ public class UserManagementServiceImpl implements UserManagementService {
         }
 
         // 验证当前用户权限
-        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        String currentUsername = ((User)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
         User currentUser = userRepository.findByUsername(currentUsername)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND.getCode(), "当前用户不存在"));
         
@@ -227,7 +227,7 @@ public class UserManagementServiceImpl implements UserManagementService {
         }
 
         // 验证当前用户权限
-        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        String currentUsername = ((User)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
         User currentUser = userRepository.findByUsername(currentUsername)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND.getCode(), "当前用户不存在"));
         
@@ -263,7 +263,7 @@ public class UserManagementServiceImpl implements UserManagementService {
         User user = getUser(enterpriseId, userId);
         
         // 验证当前用户权限
-        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        String currentUsername = ((User)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
         User currentUser = userRepository.findByUsername(currentUsername)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND.getCode(), "当前用户不存在"));
         
@@ -288,7 +288,7 @@ public class UserManagementServiceImpl implements UserManagementService {
         User user = getUser(enterpriseId, userId);
         
         // 验证当前用户权限
-        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        String currentUsername = ((User)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
         User currentUser = userRepository.findByUsername(currentUsername)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND.getCode(), "当前用户不存在"));
         

@@ -46,6 +46,15 @@ public class JwtService {
     }
 
     /**
+     * 生成访问令牌（带Token版本号）
+     */
+    public String generateToken(User user, Long tokenVersion) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("version", tokenVersion);
+        return buildToken(claims, user, expirationTime);
+    }
+
+    /**
      * 生成刷新令牌
      */
     public String generateRefreshToken(User user) {
@@ -63,10 +72,18 @@ public class JwtService {
                 .claim("userId", user.getId())
                 .claim("enterpriseId", user.getEnterpriseId())
                 .claim("role", user.getRole())
+                .setId(java.util.UUID.randomUUID().toString())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
+    }
+
+    /**
+     * 提取Token版本号
+     */
+    public Long extractVersion(String token) {
+        return extractClaim(token, claims -> claims.get("version", Long.class));
     }
 
     /**
@@ -165,5 +182,19 @@ public class JwtService {
      */
     public Long getRefreshExpirationTime() {
         return refreshExpirationTime / 1000;
+    }
+
+    /**
+     * 提取令牌ID（jti）
+     */
+    public String extractJti(String token) {
+        return extractClaim(token, Claims::getId);
+    }
+
+    /**
+     * 获取access token过期时间（毫秒）
+     */
+    public long getExpirationTimeMillis() {
+        return expirationTime;
     }
 }

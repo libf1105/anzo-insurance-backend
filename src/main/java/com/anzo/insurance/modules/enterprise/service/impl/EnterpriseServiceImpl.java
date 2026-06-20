@@ -43,7 +43,7 @@ public class EnterpriseServiceImpl implements EnterpriseService {
 
     @Override
     public Enterprise getCurrentEnterprise() {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        String username = ((User)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND.getCode(), "用户不存在"));
         
@@ -74,7 +74,7 @@ public class EnterpriseServiceImpl implements EnterpriseService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateCurrentEnterprise(EnterpriseUpdateDTO updateDTO) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        String username = ((User)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND.getCode(), "用户不存在"));
         
@@ -128,7 +128,7 @@ public class EnterpriseServiceImpl implements EnterpriseService {
             throw new BusinessException(ErrorCode.BUSINESS_ERROR.getCode(), "企业状态不是待审核");
         }
 
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        String username = ((User)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
         
         enterprise.setReviewBy(username);
         enterprise.setReviewAt(LocalDateTime.now());

@@ -1,6 +1,9 @@
 package com.anzo.insurance.common.filter;
 
+import com.anzo.insurance.common.util.RedisTokenUtil;
+import com.anzo.insurance.modules.auth.entity.Enterprise;
 import com.anzo.insurance.modules.auth.entity.User;
+import com.anzo.insurance.modules.auth.repository.EnterpriseRepository;
 import com.anzo.insurance.modules.auth.repository.UserRepository;
 import com.anzo.insurance.modules.auth.service.JwtService;
 import com.anzo.insurance.modules.auth.service.UserDetailsServiceImpl;
@@ -19,10 +22,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 
 /**
  * JWT认证过滤器
@@ -35,7 +34,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final UserDetailsServiceImpl userDetailsService;
     private final UserRepository userRepository;
-    private static final HttpClient DEBUG_HTTP_CLIENT = HttpClient.newHttpClient();
+    private final EnterpriseRepository enterpriseRepository;
+    private final RedisTokenUtil redisTokenUtil;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -47,20 +47,41 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (StringUtils.hasText(token) && jwtService.extractUsername(token) != null) {
                 String username = jwtService.extractUsername(token);
+                String jti = jwtService.extractJti(token);
                 Long tokenUserId = jwtService.extractUserId(token);
                 Long tokenEnterpriseId = jwtService.extractEnterpriseId(token);
-                // #region debug-point C:jwt-filter-start
-                sendDebugEvent("C", "pre-fix", "src/main/java/com/anzo/insurance/common/filter/JwtAuthenticationFilter.java:47",
-                        "[DEBUG] jwt filter token parsed",
-                        "{\"path\":\"" + safeJson(request.getRequestURI()) + "\",\"username\":\"" + safeJson(username)
-                                + "\",\"tokenUserId\":" + tokenUserId + ",\"tokenEnterpriseId\":" + tokenEnterpriseId + "}");
-                // #endregion
+                
+                // 检查Token是否在黑名单中
+                if (jti != null && redisTokenUtil.isBlacklisted(jti)) {
+                    log.debug("Token已失效（在黑名单中）: {}", jti);
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+                
+                // 检查Token版本号
+                if (tokenUserId != null) {
+                    long currentVersion = redisTokenUtil.getTokenVersion(tokenUserId);
+                    Long tokenVersion = jwtService.extractClaim(token, claims -> claims.get("version", Long.class));
+                    if (tokenVersion != null && tokenVersion < currentVersion) {
+                        log.debug("Token版本已过期: tokenVersion={}, currentVersion={}", tokenVersion, currentVersion);
+                        filterChain.doFilter(request, response);
+                        return;
+                    }
+                }
 
                 // 加载用户信息
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                 User user = userRepository.findByUsername(username).orElse(null);
 
                 if (user != null && jwtService.isTokenValid(token, user)) {
+                    // 验证企业状态
+                    Enterprise enterprise = enterpriseRepository.selectById(user.getEnterpriseId());
+                    if (enterprise == null || !Enterprise.Status.ACTIVE.getValue().equals(enterprise.getStatus())) {
+                        log.debug("企业状态异常: enterpriseId={}", user.getEnterpriseId());
+                        filterChain.doFilter(request, response);
+                        return;
+                    }
+                    
                     // 获取token中的信息
                     Long userId = tokenUserId;
                     Long enterpriseId = tokenEnterpriseId;
@@ -78,20 +99,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     // 将企业ID和用户ID添加到请求属性中，供后续使用
                     request.setAttribute("enterpriseId", enterpriseId);
                     request.setAttribute("userId", userId);
-                    // #region debug-point C:jwt-filter-user-found
-                    sendDebugEvent("C", "pre-fix", "src/main/java/com/anzo/insurance/common/filter/JwtAuthenticationFilter.java:73",
-                            "[DEBUG] jwt filter user resolved",
-                            "{\"path\":\"" + safeJson(request.getRequestURI()) + "\",\"username\":\"" + safeJson(username)
-                                    + "\",\"dbUserId\":" + user.getId() + ",\"dbEnterpriseId\":" + user.getEnterpriseId() + "}");
-                    // #endregion
                 }
             }
         } catch (Exception e) {
-            // #region debug-point C:jwt-filter-error
-            sendDebugEvent("C", "pre-fix", "src/main/java/com/anzo/insurance/common/filter/JwtAuthenticationFilter.java:79",
-                    "[DEBUG] jwt filter failed",
-                    "{\"path\":\"" + safeJson(request.getRequestURI()) + "\",\"message\":\"" + safeJson(e.getMessage()) + "\"}");
-            // #endregion
             log.debug("JWT认证失败: {}", e.getMessage());
         }
 
@@ -109,33 +119,5 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         return null;
-    }
-
-    private void sendDebugEvent(String hypothesisId, String runId, String location, String msg, String dataJson) {
-        try {
-            String body = "{"
-                    + "\"sessionId\":\"user-not-found-logout\","
-                    + "\"runId\":\"" + runId + "\","
-                    + "\"hypothesisId\":\"" + hypothesisId + "\","
-                    + "\"location\":\"" + location + "\","
-                    + "\"msg\":\"" + msg + "\","
-                    + "\"data\":" + dataJson + ","
-                    + "\"ts\":" + System.currentTimeMillis()
-                    + "}";
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("http://127.0.0.1:7777/event"))
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(body))
-                    .build();
-            DEBUG_HTTP_CLIENT.sendAsync(request, HttpResponse.BodyHandlers.discarding());
-        } catch (Exception ignored) {
-        }
-    }
-
-    private String safeJson(String value) {
-        if (value == null) {
-            return "";
-        }
-        return value.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 }

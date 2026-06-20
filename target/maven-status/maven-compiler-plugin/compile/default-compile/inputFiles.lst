@@ -50,7 +50,6 @@
 /Users/libingfeng/Desktop/repository/AnzoTech/anzo-insurance-backend/src/main/java/com/anzo/insurance/modules/auth/entity/User.java
 /Users/libingfeng/Desktop/repository/AnzoTech/anzo-insurance-backend/src/main/java/com/anzo/insurance/modules/finance/controller/WalletController.java
 /Users/libingfeng/Desktop/repository/AnzoTech/anzo-insurance-backend/src/main/java/com/anzo/insurance/modules/file/service/FileManagementService.java
-/Users/libingfeng/Desktop/repository/AnzoTech/anzo-insurance-backend/src/main/java/com/anzo/insurance/common/util/JwtUtil.java
 /Users/libingfeng/Desktop/repository/AnzoTech/anzo-insurance-backend/src/main/java/com/anzo/insurance/modules/auth/dto/ResetPasswordDTO.java
 /Users/libingfeng/Desktop/repository/AnzoTech/anzo-insurance-backend/src/main/java/com/anzo/insurance/common/util/RedisLockUtil.java
 /Users/libingfeng/Desktop/repository/AnzoTech/anzo-insurance-backend/src/main/java/com/anzo/insurance/modules/claim/service/impl/ClaimServiceImpl.java
@@ -104,6 +103,7 @@
 /Users/libingfeng/Desktop/repository/AnzoTech/anzo-insurance-backend/src/main/java/com/anzo/insurance/modules/message/dto/NotificationDTO.java
 /Users/libingfeng/Desktop/repository/AnzoTech/anzo-insurance-backend/src/main/java/com/anzo/insurance/modules/finance/dto/BillReconcileDTO.java
 /Users/libingfeng/Desktop/repository/AnzoTech/anzo-insurance-backend/src/main/java/com/anzo/insurance/common/exception/BusinessException.java
+/Users/libingfeng/Desktop/repository/AnzoTech/anzo-insurance-backend/src/main/java/com/anzo/insurance/common/util/RedisTokenUtil.java
 /Users/libingfeng/Desktop/repository/AnzoTech/anzo-insurance-backend/src/main/java/com/anzo/insurance/common/response/ApiResponse.java
 /Users/libingfeng/Desktop/repository/AnzoTech/anzo-insurance-backend/src/main/java/com/anzo/insurance/common/util/RedisUtil.java
 /Users/libingfeng/Desktop/repository/AnzoTech/anzo-insurance-backend/src/main/java/com/anzo/insurance/modules/finance/dto/TransactionRecordDTO.java

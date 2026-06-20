@@ -66,7 +66,7 @@ public class FileManagementServiceImpl implements FileManagementService {
         validateFile(uploadDTO.getFile());
         
         // 获取当前用户和企业信息
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        String username = ((User)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND.getCode(), "用户不存在"));
         
@@ -244,7 +244,7 @@ public class FileManagementServiceImpl implements FileManagementService {
             throw new BusinessException(ErrorCode.BUSINESS_ERROR.getCode(), "文件已审核，无法重复审核");
         }
         
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        String username = ((User)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND.getCode(), "用户不存在"));
         
@@ -418,7 +418,7 @@ public class FileManagementServiceImpl implements FileManagementService {
     }
 
     private void checkFileAccessPermission(EnterpriseFile file) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        String username = ((User)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND.getCode(), "用户不存在"));
         
@@ -434,7 +434,7 @@ public class FileManagementServiceImpl implements FileManagementService {
     }
 
     private void checkEnterpriseAccessPermission(Long enterpriseId) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        String username = ((User)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND.getCode(), "用户不存在"));
         
@@ -450,7 +450,7 @@ public class FileManagementServiceImpl implements FileManagementService {
     }
 
     private void checkFileDeletePermission(EnterpriseFile file) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        String username = ((User)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND.getCode(), "用户不存在"));
         
@@ -466,7 +466,7 @@ public class FileManagementServiceImpl implements FileManagementService {
     }
 
     private void checkFileUpdatePermission(EnterpriseFile file) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        String username = ((User)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND.getCode(), "用户不存在"));
         
@@ -482,7 +482,7 @@ public class FileManagementServiceImpl implements FileManagementService {
     }
 
     private void checkReviewPermission() {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        String username = ((User)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND.getCode(), "用户不存在"));
         

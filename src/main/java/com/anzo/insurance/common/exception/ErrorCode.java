@@ -20,6 +20,7 @@ public enum ErrorCode {
     FORBIDDEN("FORBIDDEN", "权限不足"),
     TOKEN_EXPIRED("TOKEN_EXPIRED", "Token已过期"),
     TOKEN_INVALID("TOKEN_INVALID", "Token无效"),
+    MAX_LOGIN_FAILURES("MAX_LOGIN_FAILURES", "登录失败次数过多"),
     
     // 业务级错误
     BUSINESS_ERROR("BUSINESS_ERROR", "业务异常"),
