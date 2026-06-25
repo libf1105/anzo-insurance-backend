@@ -51,22 +51,33 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 Long tokenUserId = jwtService.extractUserId(token);
                 Long tokenEnterpriseId = jwtService.extractEnterpriseId(token);
                 
-                // 检查Token是否在黑名单中
-                if (jti != null && redisTokenUtil.isBlacklisted(jti)) {
-                    log.debug("Token已失效（在黑名单中）: {}", jti);
-                    filterChain.doFilter(request, response);
-                    return;
-                }
-                
-                // 检查Token版本号
-                if (tokenUserId != null) {
-                    long currentVersion = redisTokenUtil.getTokenVersion(tokenUserId);
-                    Long tokenVersion = jwtService.extractClaim(token, claims -> claims.get("version", Long.class));
-                    if (tokenVersion != null && tokenVersion < currentVersion) {
-                        log.debug("Token版本已过期: tokenVersion={}, currentVersion={}", tokenVersion, currentVersion);
+                // 检查Token是否在黑名单中（Redis异常时容错，跳过检查）
+                try {
+                    if (jti != null && redisTokenUtil.isBlacklisted(jti)) {
+                        log.debug("Token已失效（在黑名单中）: {}", jti);
                         filterChain.doFilter(request, response);
                         return;
                     }
+                } catch (Exception redisEx) {
+                    log.warn("Redis检查Token黑名单失败，跳过黑名单检查: {}", redisEx.getMessage());
+                }
+                
+                // 检查Token版本号（Redis异常时容错，跳过检查）
+                try {
+                    if (tokenUserId != null) {
+                        long currentVersion = redisTokenUtil.getTokenVersion(tokenUserId);
+                        Long tokenVersion = jwtService.extractClaim(token, claims -> {
+                            Object val = claims.get("version");
+                            return val != null ? ((Number) val).longValue() : null;
+                        });
+                        if (tokenVersion != null && tokenVersion < currentVersion) {
+                            log.debug("Token版本已过期: tokenVersion={}, currentVersion={}", tokenVersion, currentVersion);
+                            filterChain.doFilter(request, response);
+                            return;
+                        }
+                    }
+                } catch (Exception redisEx) {
+                    log.warn("Redis检查Token版本失败，跳过版本检查: {}", redisEx.getMessage());
                 }
 
                 // 加载用户信息
@@ -77,7 +88,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     // 验证企业状态
                     Enterprise enterprise = enterpriseRepository.selectById(user.getEnterpriseId());
                     if (enterprise == null || !Enterprise.Status.ACTIVE.getValue().equals(enterprise.getStatus())) {
-                        log.debug("企业状态异常: enterpriseId={}", user.getEnterpriseId());
+                        log.warn("企业状态异常，拒绝认证: enterpriseId={}", user.getEnterpriseId());
                         filterChain.doFilter(request, response);
                         return;
                     }
@@ -102,7 +113,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         } catch (Exception e) {
-            log.debug("JWT认证失败: {}", e.getMessage());
+            log.warn("JWT认证处理异常: {}", e.getMessage());
         }
 
         filterChain.doFilter(request, response);
